@@ -1,1 +1,3 @@
-console.log('Edit init/index.js to add init tasks!');
+module.exports = () => {
+  console.log('Edit init/index.js to add init tasks!');
+}

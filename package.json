@@ -1,6 +1,5 @@
 {
   "name": "@density/build-js",
-  "private": true,
   "version": "0.1.0",
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
   "bin": {
@@ -41,5 +40,8 @@
     "uglify-js": "^2.8.18",
     "watchify": "^3.9.0",
     "webpack": "^2.3.1"
+  },
+  "publishConfig": {
+    "registry": "http://npmregistry.density.rodeo"
   }
 }

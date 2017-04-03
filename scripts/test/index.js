@@ -1,1 +1,1 @@
-console.log('Add some tests to test/index.js!');
+console.log('Edit test/index.js to add some tests!');

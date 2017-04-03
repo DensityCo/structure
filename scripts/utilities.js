@@ -10,16 +10,17 @@ const path = require('path');
  */
 function copyRecursiveSync(src, dest) {
   var exists = fs.existsSync(src);
-  var stats = exists && fs.statSync(src);
-  var isDirectory = exists && stats.isDirectory();
-  if (exists && isDirectory) {
-    !fs.existsSync(dest) && fs.mkdirSync(dest);
-    fs.readdirSync(src).forEach(function(childItemName) {
-      copyRecursiveSync(path.join(src, childItemName),
-                        path.join(dest, childItemName));
-    });
-  } else {
-    !fs.existsSync(dest) && fs.linkSync(src, dest);
+  if (exists) {
+    var stats = fs.statSync(src);
+    if (stats.isDirectory()) {
+      !fs.existsSync(dest) && fs.mkdirSync(dest);
+      fs.readdirSync(src).forEach(function(childItemName) {
+        copyRecursiveSync(path.join(src, childItemName),
+                          path.join(dest, childItemName));
+      });
+    } else {
+      !fs.existsSync(dest) && fs.linkSync(src, dest);
+    }
   }
 };
 

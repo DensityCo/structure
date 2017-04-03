@@ -1,0 +1,45 @@
+{
+  "name": "build-js",
+  "private": true,
+  "version": "0.1.0",
+  "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
+  "bin": {
+    "react-scripts": "./bin/react-scripts.js"
+  },
+  "keywords": [],
+  "contributors": [
+    {
+      "name": "Gus Cost",
+      "email": "gus@density.io"
+    },
+    {
+      "name": "Ryan Gaus",
+      "email": "ryan@density.io"
+    },
+    {
+      "name": "John Shanley",
+      "email": "john@density.io"
+    },
+    {
+      "name": "Brian Weinreich",
+      "email": "brian@density.io"
+    }
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "babel-core": "^6.24.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-react": "^6.23.0",
+    "browserify": "^14.1.0",
+    "chokidar": "^1.6.1",
+    "eslint": "^3.0.1",
+    "glob": "^7.0.5",
+    "live-server": "^1.2.0",
+    "node-sass": "^4.5.0",
+    "sorcery": "ssh://git@github.com/DensityCo/sorcery.git#a5dc9abdd986eb2f878445be7d4627e5ae493e8c",
+    "typescript": "^2.2.1",
+    "uglify-js": "^2.8.18",
+    "watchify": "^3.9.0",
+    "webpack": "^2.3.1"
+  }
+}

@@ -1,0 +1,1 @@
+console.log('Add some tests to test/index.js!');

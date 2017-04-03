@@ -1,0 +1,70 @@
+# build.js
+
+## A NodeJS transpiler/bundler Build System 
+
+This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
+
+## NodeJS Scripts
+
+Subfolders in this project are for purpose-built scripts, like `build` and `start`. Let's look at each of those:
+
+### build
+
+`build` is pretty straightforward. It imports the parts used to compile everything and runs a full transpile and bundle with CSS and assets.
+
+This script runs the final ES5 output through UglifyJS by default.
+
+### start
+
+`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs. 
+
+The TypeScript is transpiled for file changes immediately, before the full program is checked. This is because I haven't figured out if it is possible or easy to update the representation that typescript works with internally, and checking the whole program again takes a few seconds.
+
+The logic on every TS change is this:
+
+1) Slam the added or updated file through the transpiler right away. This uses a persistent reference to a "language service" to emit the new file.
+
+2) Call `run` on a webpack "compiler" instance we also keep in memory. This has an entry point `main.js` and must do a lot of stuff automatically. Also it's asynchronous so we lose track of when it might finish, but everything that needs to happen after bundling is event-based.
+
+3) In the webpack callback, we can now force the live server instance to refresh. This `live-server` instance is monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before reload).
+
+4) Additionally we queue up a "slow" transpile after a second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads with an error it will show up in the console. This just uses a brand-new ts "program" every time that gets passed all the files in the source glob. This should probably be configurable because it is CPU-heavy.
+
+The result is we get full type-checking on every change, but also a very fast reload for all valid changes.
+
+
+## Helper Modules
+
+The scripts make use of some helper abstractions to complete each step in the build process as needed. These scripts are in progress but have a fairly standard API:
+
+### transpiler
+
+`transpiler_typescript` is currently used by internal-dashboard to transpile .ts and .tsx source files, which can include JSX and ES2015 features.
+
+`transpiler_babel` is an alternative helper for things that babel supports (ES2015/2016/2017/etc, JSX, Flow).
+
+Both of these helpers have the same API:
+
+- `configure(sourceGlob, options)`: Set up the transpiler to transpile files matching `sourceGlob` with `options` (typescript `compilerOptions` or babel `options`)
+- `transpile(name)`: Transpile a single file by file name. Must run `.configure()` first. Output directory is configured in `compilerOptions` for TypeScript and is currently hard-coded for babel.
+- `transpileAll(sourceGlob?, options?)`: Transpiles all files matching `sourceGlob` with `options`. If `.configure()` has already been called these parameters will fall back to formerly configured values.
+
+### bundler
+
+`bundler` is imported into both scripts to bundle ES6 files with webpack. This helper has the following API:
+
+- `configure(main, bundle, production, sourceMap)`: Call this with an entry script and the bundle destination to initialize the bundler instance. `production` will enable production mode and minify code. `sourceMap` will try to preserve source maps in a hacky way using the `sorcery` processor.
+- `bundle(callback?, dest?)`: Call this to bundle the output file. `dest` is just used to make sure the destination directory exist before trying to write the bundle, this could be better.
+
+### styles
+
+`styles` is used to run `node-sass` in both scripts, with a separate watcher for styles in the `start` script. Pretty simple helper with the following API:
+
+- `configure(main, paths, bundle)`: Calling this with an entry SCSS file, paths to include, and the bundle destination will set up the bundler.
+- `compile(main?, paths?, bundle?)`: Use this method to compile. Parameters are the same as and fall back on values passed in a previous call to `.configure()`.
+
+### assets
+
+Assets are copied with file system calls. This helper has the following API:
+
+- `.copy(paths?, index?, dest?)`: Calling this will copy over assets from the `paths` array to `dest/assets`. If `index` is null, the helper writes a hard-coded ReactJS page to `dest/index.html`.

@@ -19,7 +19,8 @@ const sourceStylesGlob = './src/styles/**/*.scss';
 const sourceStylesMain = './src/styles/application.scss';
 const sourceStylesPaths = [
   './node_modules/bourbon/app/assets/stylesheets',
-  './node_modules/node-reset-scss/scss'
+  './node_modules/node-reset-scss/scss',
+  './node_modules/density-ui/lib'
 ];
 
 // Script sources and transpiled intermediates

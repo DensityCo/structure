@@ -8,7 +8,9 @@ module.exports = function(
   originalDirectory,
   template
 ) {
-  console.log('Update package.json...')
+  console.log('Update package.json...');
+  const ownPackageName = require(path.join(__dirname, '..', 'package.json')).name;
+  const ownPath = path.join(appPath, 'node_modules', ownPackageName);
   const appPackage = require(path.join(appPath, 'package.json'));
 
   // Copy over some of the devDependencies
@@ -27,6 +29,16 @@ module.exports = function(
     path.join(appPath, 'package.json'),
     JSON.stringify(appPackage, null, 2)
   );
+
+  // Copy template files
+  console.log('Copy template...');
+  var templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');
+  if (fs.existsSync(templatePath)) {
+    fs.copySync(templatePath, appPath);
+  } else {
+    console.error('Could not locate supplied template: ' + chalk.green(templatePath));
+    return;
+  }
 
   console.log('Edit init/index.js to add more init tasks!');
 }

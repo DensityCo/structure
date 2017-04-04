@@ -53,8 +53,9 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
 
           // Module-specific fixes
           url = url.replace('/moment/locale ^/.*$', '/moment/locale/en-gb.js');
-          url = url.replace('/@blueprintjs/core/dist/src/', '/@blueprintjs/core/src/');
           url = url.replace('/@blueprintjs/core/dist/components/src/components/', '/@blueprintjs/core/src/components/');
+          url = url.replace('/@blueprintjs/core/dist/src/', '/@blueprintjs/core/src/');
+          url = url.replace('/@blueprintjs/datetime/dist/src/', '/@blueprintjs/datetime/src/');
 
           // All source files are mapped from outside the /dist directory
           if ( url.indexOf('dist/app.js') < 0 ) {

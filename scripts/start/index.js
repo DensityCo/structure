@@ -35,7 +35,7 @@ options.transpilerOptions = {
   allowSyntheticDefaultImports: true,
   alwaysStrict: true,
   jsx: 2, // ENUM: JsxEmit.React, CLI: react
-  sourceMap: fullDebugging,
+  sourceMap: options.fullDebugging,
   module: 1, // ENUM: ModuleKind.CommonJS, CLI: commonjs
   target: 1, // ENUM: ScriptTarget.ES5, CLI: es5
   moduleResolution: 2, // ENUM: ModuleResolutionKind.NodeJs, CLI: node

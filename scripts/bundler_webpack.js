@@ -44,9 +44,14 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
       if (!_production && _maps) { 
         sourcemaps.flatten(_bundle, url => {
           url = url.replace('webpack:/', '');
+          url = url.replace('/(webpack)/', '/node_modules/webpack/');
           url = url.replace('/~/', '/node_modules/');
-          if ( url.indexOf('app.js') < 0 && url.indexOf('node_modules') < 0 ) {
-            url = url.replace('dist/', '');
+          url = url.replace('locale ^/.*$', 'locale/en-gb.js');
+
+          // all source files are mapped from outside the /dist directory
+          if ( url.indexOf('dist/app.js') < 0 ) {
+            const currentPath = path.resolve('.')
+            url = url.replace(`${currentPath}/dist`, currentPath);
           }
           return url;
         }); 

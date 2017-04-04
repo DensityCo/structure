@@ -42,11 +42,11 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
       console.log('Bundle error!');
     } else {
       if (!_production && _maps) { 
+        fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
         sourcemaps.flatten(_bundle, url => {
           url = url.replace('webpack:/', '');
           url = url.replace('/(webpack)/', '/node_modules/webpack/');
           url = url.replace('/~/', '/node_modules/');
-          url = url.replace('locale ^/.*$', 'locale/en-gb.js');
 
           // all source files are mapped from outside the /dist directory
           if ( url.indexOf('dist/app.js') < 0 ) {

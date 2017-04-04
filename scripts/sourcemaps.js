@@ -4,6 +4,12 @@ const sorcery = require('sorcery');
 // HACK: make tmp sourcemaps webpack-protocol-crap-compatible
 function flatten(bundle, urlMiddleware = null) {
   const mapName = `${bundle}.map`;
+  const origName = `${bundle}.map.orig`;
+
+  // Reset from "backup" of last cached sourcemap
+  if (fs.existsSync(origName)) {
+    fs.writeFileSync(mapName, fs.readFileSync(origName))
+  }
 
   // Default middleware setup
   if (!urlMiddleware) { urlMiddleware = url => url; }

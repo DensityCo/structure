@@ -19,7 +19,7 @@ function configure(main, bundle, production = false, maps = false) {
     cache: {},
     packageCache: {},
     paths: ['./node_modules/'],
-    debug: !production
+    debug: _maps
   });
   _b.plugin(watchify);
 }
@@ -30,7 +30,8 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
     if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
     _b.bundle((err, buf) => {
       fs.writeFileSync(_bundle, buf.toString());
-      if (!_production && _maps) { 
+      if (!_production && _maps) {
+        fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
         sourcemaps.flatten(_bundle, url => {
           if ( url.indexOf('app.js') < 0 && url.indexOf('node_modules') < 0 ) {
             return url.replace('dist/', '');

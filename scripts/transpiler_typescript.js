@@ -80,9 +80,13 @@ function transpileAll(sourceGlob = _sourceGlob, options = _options) {
 
   // Log out all diagnostics
   allDiagnostics.forEach(diagnostic => {
-    const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-    const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-    console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+    if (!diagnostic.file) {
+      console.log(`TS: ${diagnostic.messageText}`);
+    } else {
+      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+      console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+    }
   });
 
   // Log out skipped or complete message

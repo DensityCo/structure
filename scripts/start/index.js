@@ -19,7 +19,7 @@ options.fullDebugging =
 // Default style sources
 options.stylesBundle = './dist/app.css';
 options.sourceStylesGlob = './src/styles/**/*.scss';
-options.sourceStylesMain = './src/styles/application.scss';
+options.sourceStylesMain = './src/styles/main.scss';
 options.sourceStylesPaths = [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',

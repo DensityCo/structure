@@ -7,29 +7,31 @@ const transpiler = require('../transpiler_typescript');
 const bundler = require('../bundler_webpack');
 
 
+// Options
+const options = {};
+
 // "dev" argument
-const production = 
+options.production = 
   process.argv.length < 3 ||
   process.argv.slice(2).indexOf('dev') < 0;
 
-
 // Style sources
-const stylesBundle = './dist/app.css';
-const sourceStylesGlob = './src/styles/**/*.scss';
-const sourceStylesMain = './src/styles/application.scss';
-const sourceStylesPaths = [
+options.stylesBundle = './dist/app.css';
+options.sourceStylesGlob = './src/styles/**/*.scss';
+options.sourceStylesMain = './src/styles/application.scss';
+options.sourceStylesPaths = [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',
   './node_modules/density-ui/lib'
 ];
 
 // Script sources and transpiled intermediates
-const scriptsBundle = './dist/app.js';
-const sourceScriptsGlob = './src/scripts/**/*.ts*';
-const tmpScriptsMain = './tmp/main.js';
+options.scriptsBundle = './dist/app.js';
+options.sourceScriptsGlob = './src/scripts/**/*.ts*';
+options.tmpScriptsMain = './tmp/main.js';
 
 // TypeScript compiler options
-const transpilerOptions = {
+options.transpilerOptions = {
   allowSyntheticDefaultImports: true,
   alwaysStrict: true,
   jsx: 2, // ENUM: JsxEmit.React, CLI: react
@@ -40,14 +42,19 @@ const transpilerOptions = {
   outDir: './tmp'
 }
 
+// Overwrite defaults with options from config file ᕕ(ᐛ)ᕗ
+if (fs.existsSync('./build.json')) {
+  Object.assign(options, JSON.parse(fs.readFileSync('./build.json').toString()));
+}
+
 // Set up style compiler
-styles.configure(sourceStylesMain, sourceStylesPaths, stylesBundle);
+styles.configure(options.sourceStylesMain, options.sourceStylesPaths, options.stylesBundle);
 
 // Set up ts transpiler
-transpiler.configure(sourceScriptsGlob, transpilerOptions);
+transpiler.configure(options.sourceScriptsGlob, options.transpilerOptions);
 
 // Set up webpack bundler
-bundler.configure(tmpScriptsMain, scriptsBundle, production, false);
+bundler.configure(options.tmpScriptsMain, options.scriptsBundle, options.production, false);
 
 
 // Run everything
@@ -62,11 +69,11 @@ transpiler.transpileAll();
 
 console.log('bundle...');
 bundler.bundle(() => {
-  if (production) {
+  if (options.production) {
     console.log('minify...');
     fs.writeFileSync(
-      scriptsBundle, 
-      UglifyJS.minify([scriptsBundle], { compress: { dead_code: true } }).code
+      options.scriptsBundle, 
+      UglifyJS.minify([options.scriptsBundle], { compress: { dead_code: true } }).code
     );
   }
   console.log('Done!');

@@ -7,29 +7,31 @@ const transpiler = require('../transpiler_typescript');
 const bundler = require('../bundler_webpack');
 
 
+// Options
+const options = {};
+
 // "Lean mode" argument
-const fullDebugging = 
+options.fullDebugging = 
   process.argv.length < 3 ||
   process.argv.slice(2).indexOf('lean') < 0;
 
-
-// Style sources
-const stylesBundle = './dist/app.css';
-const sourceStylesGlob = './src/styles/**/*.scss';
-const sourceStylesMain = './src/styles/application.scss';
-const sourceStylesPaths = [
+// Default style sources
+options.stylesBundle = './dist/app.css';
+options.sourceStylesGlob = './src/styles/**/*.scss';
+options.sourceStylesMain = './src/styles/application.scss';
+options.sourceStylesPaths = [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',
   './node_modules/density-ui/lib'
 ];
 
-// Script sources and transpiled intermediates
-const scriptsBundle = './dist/app.js';
-const sourceScriptsGlob = './src/scripts/**/*.ts*';
-const tmpScriptsMain = './tmp/main.js';
+// Default script sources and transpiled intermediates
+options.scriptsBundle = './dist/app.js';
+options.sourceScriptsGlob = './src/scripts/**/*.ts*';
+options.tmpScriptsMain = './tmp/main.js';
 
-// TypeScript compiler options
-const transpilerOptions = {
+// Default TypeScript compiler options
+options.transpilerOptions = {
   allowSyntheticDefaultImports: true,
   alwaysStrict: true,
   jsx: 2, // ENUM: JsxEmit.React, CLI: react
@@ -40,14 +42,19 @@ const transpilerOptions = {
   outDir: './tmp'
 }
 
+// Overwrite defaults with options from config file ᕕ(ᐛ)ᕗ
+if (fs.existsSync('./build.json')) {
+  Object.assign(options, JSON.parse(fs.readFileSync('./build.json').toString()));
+}
+
 // Set up style compiler
-styles.configure(sourceStylesMain, sourceStylesPaths, stylesBundle);
+styles.configure(options.sourceStylesMain, options.sourceStylesPaths, options.stylesBundle);
 
 // Set up ts transpiler
-transpiler.configure(sourceScriptsGlob, transpilerOptions);
+transpiler.configure(options.sourceScriptsGlob, options.transpilerOptions);
 
 // Set up webpack bundler
-bundler.configure(tmpScriptsMain, scriptsBundle, false, fullDebugging);
+bundler.configure(options.tmpScriptsMain, options.scriptsBundle, false, options.fullDebugging);
 
 
 // BUILD AND START WATCHING
@@ -60,7 +67,7 @@ assets.copy();
 styles.compile();
 
 // Watcher for all style source files
-const styleWatch = chokidar.watch(sourceStylesGlob, {
+const styleWatch = chokidar.watch(options.sourceStylesGlob, {
   persistent: true,
   ignoreInitial: true
 }).on('all', (event, fileName) => {
@@ -82,10 +89,10 @@ const styleWatch = chokidar.watch(sourceStylesGlob, {
 
 // First-run transpile and bundle
 transpiler.transpileAll();
-bundler.bundle(() => liveServer.change(scriptsBundle));
+bundler.bundle(() => liveServer.change(options.scriptsBundle));
 
 // Watcher for all .ts and .tsx files
-const scriptWatch = chokidar.watch(sourceScriptsGlob, { 
+const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 
   persistent: true,
   ignoreInitial: true
 }).on('all', (event, fileName) => {
@@ -106,8 +113,8 @@ const scriptWatch = chokidar.watch(sourceScriptsGlob, {
   // Re-bundle on every change, then optionally typecheck and generate sourcemap
   if (event === 'add' || event === 'change' || event === 'unlink') {
     bundler.bundle(() => {
-      liveServer.change(scriptsBundle);
-      if (fullDebugging) { 
+      liveServer.change(options.scriptsBundle);
+      if (options.fullDebugging) { 
         setTimeout(transpiler.transpileAll, 1000); 
       }
     });

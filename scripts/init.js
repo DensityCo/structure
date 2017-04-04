@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const utilities = require('./utilities');
 
 module.exports = function(
   appPath,
@@ -34,7 +35,7 @@ module.exports = function(
   console.log('Copy template...');
   var templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');
   if (fs.existsSync(templatePath)) {
-    fs.copySync(templatePath, appPath);
+    utilities.copyRecursiveSync(templatePath, appPath);
   } else {
     console.error('Could not locate supplied template: ' + chalk.green(templatePath));
     return;

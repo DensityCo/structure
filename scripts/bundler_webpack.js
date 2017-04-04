@@ -44,15 +44,25 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
       if (!_production && _maps) { 
         fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
         sourcemaps.flatten(_bundle, url => {
-          url = url.replace('webpack:/', '');
-          url = url.replace('/(webpack)/', '/node_modules/webpack/');
+          
+          // Fix various webpack stuff
           url = url.replace('/~/', '/node_modules/');
+          url = url.replace('webpack:/', '');
+          url = url.replace('/(webpack)/', '/node_modules/webpack/');          
+          url = url.replace(/\/webpack\/bootstrap [a-z0-9]+/, '/node_modules/webpack/lib/webpack.js');
 
-          // all source files are mapped from outside the /dist directory
+          // Module-specific fixes
+          url = url.replace('/moment/locale ^/.*$', '/moment/locale/en-gb.js');
+          url = url.replace('/@blueprintjs/core/dist/src/', '/@blueprintjs/core/src/');
+          url = url.replace('/@blueprintjs/core/dist/components/src/components/', '/@blueprintjs/core/src/components/');
+
+          // All source files are mapped from outside the /dist directory
           if ( url.indexOf('dist/app.js') < 0 ) {
             const currentPath = path.resolve('.')
             url = url.replace(`${currentPath}/dist`, currentPath);
           }
+
+          // Good to go!
           return url;
         }); 
       }

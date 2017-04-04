@@ -1,3 +1,4 @@
+const fs = require('fs');
 const chokidar = require('chokidar');
 const liveServer = require('live-server');
 

@@ -90,7 +90,27 @@ const styleWatch = chokidar.watch(options.sourceStylesGlob, {
 
 // First-run transpile and bundle
 transpiler.transpileAll();
-bundler.bundle(() => liveServer.change(options.scriptsBundle));
+bundler.bundle(() => {
+
+  // LIVE SERVER
+  // ...
+  var params = {
+    port: 8080,
+    host: "0.0.0.0",
+    root: "./dist",
+    file: "index.html",
+    mount: [['/node_modules', './node_modules']],
+    open: true,
+    wait: 0,
+    logLevel: 2
+  };
+
+  // Start monkey-patched live server
+  // TODO: explain this
+  liveServer.start(params);
+  liveServer.change = liveServer.watcher.listeners('change')[0];
+  liveServer.watcher.removeAllListeners();
+});
 
 // Watcher for all .ts and .tsx files
 const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 
@@ -121,24 +141,3 @@ const scriptWatch = chokidar.watch(options.sourceScriptsGlob, {
     });
   }
 });
-
-
-// LIVE SERVER
-// ...
-
-var params = {
-	port: 8080,
-	host: "0.0.0.0",
-	root: "./dist",
-	file: "index.html",
-	mount: [['/node_modules', './node_modules']],
-  open: true,
-	wait: 0,
-	logLevel: 2,
-};
-
-// Start monkey-patched live server
-// TODO: explain this
-liveServer.start(params);
-liveServer.change = liveServer.watcher.listeners('change')[0];
-liveServer.watcher.removeAllListeners();

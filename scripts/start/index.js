@@ -48,6 +48,29 @@ if (fs.existsSync('./build.json')) {
   Object.assign(options, JSON.parse(fs.readFileSync('./build.json').toString()));
 }
 
+// Helper to start live-server
+function startLiveServer () {
+
+  // Configure live-server
+  const params = {
+    port: 8080,
+    host: "0.0.0.0",
+    root: "./dist",
+    file: "index.html",
+    mount: [['/node_modules', './node_modules']],
+    open: true,
+    wait: 0,
+    logLevel: 2
+  };
+
+  // Start monkey-patched live-server.
+  // We remove the listeners so it doesn't watch any files.
+  // And add a "change" helper so we can manually run the change listener. 
+  liveServer.start(params);
+  liveServer.change = liveServer.watcher.listeners('change')[0];
+  liveServer.watcher.removeAllListeners();
+}
+
 // Set up style compiler
 styles.configure(options.sourceStylesMain, options.sourceStylesPaths, options.stylesBundle);
 
@@ -90,27 +113,7 @@ const styleWatch = chokidar.watch(options.sourceStylesGlob, {
 
 // First-run transpile and bundle
 transpiler.transpileAll();
-bundler.bundle(() => {
-
-  // LIVE SERVER
-  // ...
-  var params = {
-    port: 8080,
-    host: "0.0.0.0",
-    root: "./dist",
-    file: "index.html",
-    mount: [['/node_modules', './node_modules']],
-    open: true,
-    wait: 0,
-    logLevel: 2
-  };
-
-  // Start monkey-patched live server
-  // TODO: explain this
-  liveServer.start(params);
-  liveServer.change = liveServer.watcher.listeners('change')[0];
-  liveServer.watcher.removeAllListeners();
-});
+bundler.bundle(startLiveServer);
 
 // Watcher for all .ts and .tsx files
 const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 

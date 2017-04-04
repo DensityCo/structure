@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
-import '../styles/App.css';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 
-class App extends Component {
+class App extends React.Component {
   render() {
     return (
       <div className="App">

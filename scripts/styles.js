@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const sass = require('node-sass');
 
@@ -17,7 +18,7 @@ function compile(main = _main, paths = _paths, bundle = _bundle) {
     includePaths: paths
   });
   fs.writeFileSync(bundle, result.css);
-  console.log('Styles ready!');
+  console.log(chalk.gray('Styles ready!'));
 }
 
 module.exports = {

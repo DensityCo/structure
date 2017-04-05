@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
@@ -39,7 +40,7 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
   if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
   _compiler.run((err, stats) => {
     if (err) {
-      console.log('Bundle error!');
+      console.log(chalk.gray('Bundle error!'));
     } else {
       if (!_production && _maps) { 
         fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
@@ -67,7 +68,7 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
           return url;
         }); 
       }
-      console.log('Bundle ready!');
+      console.log(chalk.gray('Bundle ready!'));
       if (callback) { callback(); }
     }
   });

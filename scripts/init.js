@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const utilities = require('./utilities');
@@ -9,7 +10,7 @@ module.exports = function(
   originalDirectory,
   template
 ) {
-  console.log('Update package.json...');
+  console.log(chalk.gray('Update package.json...'));
   const ownPackageName = require(path.join(__dirname, '..', 'package.json')).name;
   const ownPath = path.join(appPath, 'node_modules', ownPackageName);
   const appPackage = require(path.join(appPath, 'package.json'));
@@ -32,7 +33,7 @@ module.exports = function(
   );
 
   // Copy template files
-  console.log('Copy template...');
+  console.log(chalk.gray('Copy template...'));
   var templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');
   if (fs.existsSync(templatePath)) {
     utilities.copyRecursiveSync(templatePath, appPath);
@@ -41,5 +42,5 @@ module.exports = function(
     return;
   }
 
-  console.log('Edit init/index.js to add more init tasks!');
+  console.log(chalk.gray('Edit init/index.js to add more init tasks!'));
 }

@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const glob = require('glob');
 const ts = require('typescript');
@@ -38,7 +39,7 @@ function transpile(name) {
 
   // Abort if language service isn't configured yet
   if (!_service) { 
-    console.log('Run `configure` before running `transpile`!');
+    console.error('Run `configure` before running `transpile`!');
     return null;
   }
   
@@ -55,9 +56,9 @@ function transpile(name) {
   // Emit the output
   const output = _service.getEmitOutput(name);
   if (output.emitSkipped) {
-    console.log(`Quick transpile ${name} skipped!`);
+    console.log(chalk.gray(`Quick transpile ${name} skipped!`));
   } else {
-    console.log(`Quick transpile ${name} done!`);
+    console.log(chalk.gray(`Quick transpile ${name} done!`));
   }
 
   // Write output files
@@ -80,20 +81,20 @@ function transpileAll(sourceGlob = _sourceGlob, options = _options) {
 
   // Log out all diagnostics
   allDiagnostics.forEach(diagnostic => {
+    const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
     if (!diagnostic.file) {
-      console.log(`TS: ${diagnostic.messageText}`);
+      console.log(chalk.yellow(`TS: ${message}`));
     } else {
       const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-      console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+      console.log(chalk.yellow(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`));
     }
   });
 
   // Log out skipped or complete message
   if (emitResult.emitSkipped) {
-    console.log('Full transpile skipped!');
+    console.log(chalk.gray('Full transpile skipped!'));
   } else {
-    console.log('Full transpile done!');
+    console.log(chalk.gray('Full transpile done!'));
   }
 }
 

@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const utilities = require('./utilities');
@@ -27,7 +28,7 @@ function copy(
 </html>`);
 
   paths.forEach((path) => utilities.copyRecursiveSync(path, `${dest}/assets`));
-  console.log('Assets ready!')
+  console.log(chalk.gray('Assets ready!'));
 }
 
 module.exports = {

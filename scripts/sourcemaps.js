@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const sorcery = require('sorcery');
 
@@ -22,7 +23,7 @@ function flatten(bundle, urlMiddleware = null) {
   // Write out flattened source map
   let map = chain.apply().toString();
   fs.writeFileSync(mapName, map);
-  console.log('Sourcemaps ready!');
+  console.log(chalk.gray('Sourcemaps ready!'));
 }
 
 // Public API

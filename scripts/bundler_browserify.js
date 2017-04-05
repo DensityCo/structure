@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const browserify = require('browserify');
@@ -38,7 +39,7 @@ function bundle(callback = null, dest = path.dirname(_bundle)) {
           }
         });
       }
-      console.log('Bundle ready!');
+      console.log(chalk.gray('Bundle ready!'));
       if (callback) { callback(); }
     });
   }, 100);

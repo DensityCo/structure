@@ -11,10 +11,15 @@ const bundler = require('../bundler_webpack');
 // Options
 const options = {};
 
-// "Lean mode" argument
-options.fullDebugging = 
-  process.argv.length < 3 ||
-  process.argv.slice(2).indexOf('lean') < 0;
+// "mode" argument and map to various settings (maybe unnecessary abstraction)
+const modeTaskMap = {
+  full: { bundleMap: true, transpileMap: true, transpileAll: true },
+  bundle: { bundleMap: true },
+  transpile: { transpileAll: true },
+  lean: {}
+};
+options.mode = (process.argv.length > 2 && process.argv.slice(2)) || 'full';
+options.modeTasks = modeTaskMap[options.mode] || {};
 
 // Default style sources
 options.stylesBundle = './dist/app.css';
@@ -36,7 +41,7 @@ options.transpilerOptions = {
   allowSyntheticDefaultImports: true,
   alwaysStrict: true,
   jsx: 2, // ENUM: JsxEmit.React, CLI: react
-  sourceMap: options.fullDebugging,
+  sourceMap: options.modeTasks.transpileMap,
   module: 1, // ENUM: ModuleKind.CommonJS, CLI: commonjs
   target: 1, // ENUM: ScriptTarget.ES5, CLI: es5
   moduleResolution: 2, // ENUM: ModuleResolutionKind.NodeJs, CLI: node
@@ -72,13 +77,25 @@ function startLiveServer () {
 }
 
 // Set up style compiler
-styles.configure(options.sourceStylesMain, options.sourceStylesPaths, options.stylesBundle);
+styles.configure(
+  options.sourceStylesMain,
+  options.sourceStylesPaths,
+  options.stylesBundle
+);
 
 // Set up ts transpiler
-transpiler.configure(options.sourceScriptsGlob, options.transpilerOptions);
+transpiler.configure(
+  options.sourceScriptsGlob,
+  options.transpilerOptions
+);
 
 // Set up webpack bundler
-bundler.configure(options.tmpScriptsMain, options.scriptsBundle, false, options.fullDebugging);
+bundler.configure(
+  options.tmpScriptsMain,
+  options.scriptsBundle,
+  false,
+  options.modeTasks.bundleMap
+);
 
 
 // BUILD AND START WATCHING
@@ -138,7 +155,7 @@ const scriptWatch = chokidar.watch(options.sourceScriptsGlob, {
   if (event === 'add' || event === 'change' || event === 'unlink') {
     bundler.bundle(() => {
       liveServer.change(options.scriptsBundle);
-      if (options.fullDebugging) { 
+      if (options.modeTasks.transpileAll) { 
         setTimeout(transpiler.transpileAll, 1000); 
       }
     });

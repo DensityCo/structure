@@ -1,3 +1,4 @@
+const chalk = require('chalk');
 const fs = require('fs');
 const glob = require('glob');
 const babel = require('babel-core');
@@ -15,7 +16,7 @@ function configure(sourceGlob, options) {
 // Helper to do a (fast) transpile of a single file
 function transpile(name) {
   if (!_options) { 
-    console.log('Run `configure` before running `transpile`!');
+    console.error('Run `configure` before running `transpile`!');
     return null;
   }
   const dest = name.replace('src/scripts', 'tmp').replace(/\.ts$/, '.js');
@@ -29,7 +30,7 @@ function transpileAll(sourceGlob = _sourceGlob, options = _options) {
 
   // Make a new program with the latest sourceFiles
   glob.sync(sourceGlob).forEach(file => transpile(file));
-  console.log('Full transpile done!');
+  console.log(chalk.gray('Full transpile done!'));
 }
 
 // Public API

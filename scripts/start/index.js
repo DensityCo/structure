@@ -56,6 +56,8 @@ if (fs.existsSync('./build.json')) {
 // Pending callbacks
 let stylesPromise = null;
 let scriptsPromise = null;
+let scriptsPending = 0;
+let stylesPending = 0;
 
 // Helper to filter out hidden/tmp files
 function exclude(fileName, extensions = ['.swp', '.swo']) {
@@ -65,16 +67,11 @@ function exclude(fileName, extensions = ['.swp', '.swo']) {
 // Helper to update styles
 function updateStyles(event, fileName) {
   return new Promise((resolve, reject) => {
-    const r = () => {
-      resolve('Styles done!');
-      stylesPromise = null;
-    };
-
-    // Re-compile
     if (event === 'add' || event === 'change' || event === 'unlink') {
       styles.compile();
       liveServer.change(fileName);
-      r();
+      stylesPending--;
+      resolve('Styles done!');
     }
   });
 }
@@ -82,11 +79,7 @@ function updateStyles(event, fileName) {
 // Helper to update the scripts bundle
 function updateScripts(event, fileName) {
   return new Promise((resolve, reject) => {
-    const r = () => {
-      resolve('Scripts done!');
-      scriptsPromise = null;
-    };
-
+    
     // Quick-transpile file on 'add' or 'change'
     if (event === 'add' || event === 'change') {
       transpiler.transpile(fileName);
@@ -98,11 +91,13 @@ function updateScripts(event, fileName) {
         liveServer.change(options.scriptsBundle);
         if (options.modeTasks.transpileAll) { 
           setTimeout(function () {
-            transpiler.transpileAll();
-            r();
+            transpiler.transpileAll();       
+            scriptsPending--;
+            resolve('Scripts done!');
           }, 1000); 
-        } else {
-          r();
+        } else {     
+          scriptsPending--;
+          resolve('Scripts done!');
         }
       });
     }
@@ -172,10 +167,13 @@ const styleWatch = chokidar.watch(options.sourceStylesGlob, {
   // Ignore files
   if (exclude(fileName)) { return; }
 
-  if (stylesPromise) {
+  // Run update or queue it up
+  if (stylesPending > 0 && stylesPending < 3) {
     stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
-  } else {
+    stylesPending++;
+  } else if (stylesPending <= 0) {
     stylesPromise = updateStyles(event, fileName);
+    stylesPending = 1;
   }
 });
 
@@ -192,11 +190,12 @@ const scriptWatch = chokidar.watch(options.sourceScriptsGlob, {
   // Ignore files
   if (exclude(fileName)) { return; }
 
-  // Run function or queue it up
-  if (scriptsPromise) {
+  // Run update or queue it up 
+  if (scriptsPending > 0 && scriptsPending < 3) {
     scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
-  } else {
+    scriptsPending++;
+  } else if (scriptsPending <= 0) {
     scriptsPromise = updateScripts(event, fileName);
+    scriptsPending = 1;
   }
-
 });

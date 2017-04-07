@@ -53,6 +53,62 @@ if (fs.existsSync('./build.json')) {
   Object.assign(options, JSON.parse(fs.readFileSync('./build.json').toString()));
 }
 
+// Pending callbacks
+let stylesPromise = null;
+let scriptsPromise = null;
+
+// Helper to filter out hidden/tmp files
+function exclude(fileName, extensions = ['.swp', '.swo']) {
+  return extensions.reduce((a, n) => fileName.endsWith(n) || a, false);
+}
+
+// Helper to update styles
+function updateStyles(event, fileName) {
+  return new Promise((resolve, reject) => {
+    const r = () => {
+      resolve('Styles done!');
+      stylesPromise = null;
+    };
+
+    // Re-compile
+    if (event === 'add' || event === 'change' || event === 'unlink') {
+      styles.compile();
+      liveServer.change(fileName);
+      r();
+    }
+  });
+}
+
+// Helper to update the scripts bundle
+function updateScripts(event, fileName) {
+  return new Promise((resolve, reject) => {
+    const r = () => {
+      resolve('Scripts done!');
+      scriptsPromise = null;
+    };
+
+    // Quick-transpile file on 'add' or 'change'
+    if (event === 'add' || event === 'change') {
+      transpiler.transpile(fileName);
+    }
+
+    // Re-bundle on every change, then optionally typecheck and generate sourcemap
+    if (event === 'add' || event === 'change' || event === 'unlink') {
+      bundler.bundle(() => {
+        liveServer.change(options.scriptsBundle);
+        if (options.modeTasks.transpileAll) { 
+          setTimeout(function () {
+            transpiler.transpileAll();
+            r();
+          }, 1000); 
+        } else {
+          r();
+        }
+      });
+    }
+  });
+}
+
 // Helper to start live-server
 function startLiveServer () {
 
@@ -113,18 +169,13 @@ const styleWatch = chokidar.watch(options.sourceStylesGlob, {
   ignoreInitial: true
 }).on('all', (event, fileName) => {
 
-  // // DEBUG: log out all fs events
-  // console.log(event, fileName);
+  // Ignore files
+  if (exclude(fileName)) { return; }
 
-  // Ignore vim swap files
-  if (fileName.endsWith(".swp") || fileName.endsWith(".swo")) {
-    return;
-  }
-
-  // Re-compile
-  if (event === 'add' || event === 'change' || event === 'unlink') {
-    styles.compile();
-    liveServer.change(fileName);
+  if (stylesPromise) {
+    stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
+  } else {
+    stylesPromise = updateStyles(event, fileName);
   }
 });
 
@@ -138,26 +189,14 @@ const scriptWatch = chokidar.watch(options.sourceScriptsGlob, {
   ignoreInitial: true
 }).on('all', (event, fileName) => {
 
-  // // DEBUG: log out all fs events
-  // console.log(event, fileName);
+  // Ignore files
+  if (exclude(fileName)) { return; }
 
-  // Ignore vim swap files
-  if (fileName.endsWith(".swp") || fileName.endsWith(".swo")) {
-    return;
+  // Run function or queue it up
+  if (scriptsPromise) {
+    scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
+  } else {
+    scriptsPromise = updateScripts(event, fileName);
   }
 
-  // Quick-transpile file on 'add' or 'change'
-  if (event === 'add' || event === 'change') {
-    transpiler.transpile(fileName);
-  }
-
-  // Re-bundle on every change, then optionally typecheck and generate sourcemap
-  if (event === 'add' || event === 'change' || event === 'unlink') {
-    bundler.bundle(() => {
-      liveServer.change(options.scriptsBundle);
-      if (options.modeTasks.transpileAll) { 
-        setTimeout(transpiler.transpileAll, 1000); 
-      }
-    });
-  }
 });

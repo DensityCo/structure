@@ -79,7 +79,7 @@ function updateStyles(event, fileName) {
 // Helper to update the scripts bundle
 function updateScripts(event, fileName) {
   return new Promise((resolve, reject) => {
-    
+
     // Quick-transpile file on 'add' or 'change'
     if (event === 'add' || event === 'change') {
       transpiler.transpile(fileName);
@@ -168,7 +168,7 @@ const styleWatch = chokidar.watch(options.sourceStylesGlob, {
   if (exclude(fileName)) { return; }
 
   // Run update or queue it up
-  if (stylesPending > 0 && stylesPending < 3) {
+  if (stylesPending > 0 && stylesPending < 2) {
     stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
     stylesPending++;
   } else if (stylesPending <= 0) {
@@ -191,7 +191,7 @@ const scriptWatch = chokidar.watch(options.sourceScriptsGlob, {
   if (exclude(fileName)) { return; }
 
   // Run update or queue it up 
-  if (scriptsPending > 0 && scriptsPending < 3) {
+  if (scriptsPending > 0 && scriptsPending < 2) {
     scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
     scriptsPending++;
   } else if (scriptsPending <= 0) {

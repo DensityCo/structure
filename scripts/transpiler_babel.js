@@ -15,22 +15,33 @@ function configure(sourceGlob, options) {
 
 // Helper to do a (fast) transpile of a single file
 function transpile(name) {
-  if (!_options) { 
-    console.error('Run `configure` before running `transpile`!');
-    return null;
-  }
-  const dest = name.replace('src/scripts', 'tmp').replace(/\.ts$/, '.js');
-  const text = babel.transformFileSync(name, _options);
-  utilities.ensureDirectoryExistence(dest);
-  fs.writeFileSync(dest, text, 'utf8');
+  return new Promise((resolve, reject) => {
+    if (!_options) { 
+      console.log(chalk.red('Run `configure` before running `transpile`!'));
+      return null;
+    }
+    const dest = name.replace('src/scripts', 'tmp').replace(/\.ts$/, '.js');
+    babel.transformFile(name, _options, (err, result) => {
+      if (err) { 
+        console.log(chalk.red(`Transpile ${name} skipped!`));
+        reject();
+      } else {
+        utilities.ensureDirectoryExistence(dest);
+        fs.writeFileSync(dest, text, 'utf8');
+        console.log(chalk.gray(`Transpile ${name} done!`));
+        resolve();
+      }
+    });
+  });
 }
 
 // Helper to do a (slow) full transpile with error reporting
 function transpileAll(sourceGlob = _sourceGlob, options = _options) {
 
   // Make a new program with the latest sourceFiles
-  glob.sync(sourceGlob).forEach(file => transpile(file));
-  console.log(chalk.gray('Full transpile done!'));
+  return Promise.all(glob.sync(sourceGlob).map(file => transpile(file))).then(results => {
+    console.log(chalk.gray('Full transpile done!'));
+  });
 }
 
 // Public API

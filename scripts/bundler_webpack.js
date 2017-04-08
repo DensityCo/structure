@@ -37,40 +37,47 @@ function configure(main, bundle, production = false, maps = false) {
 
 // Re-bundle helper method
 function bundle(callback = null, dest = path.dirname(_bundle)) {
-  if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
-  _compiler.run((err, stats) => {
-    if (err) {
-      console.log(chalk.gray('Bundle error!'));
-    } else {
-      if (!_production && _maps) { 
-        fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
-        sourcemaps.flatten(_bundle, url => {
-          
-          // Fix various webpack stuff
-          url = url.replace('/~/', '/node_modules/');
-          url = url.replace('webpack:/', '');
-          url = url.replace('/(webpack)/', '/node_modules/webpack/');          
-          url = url.replace(/\/webpack\/bootstrap [a-z0-9]+/, '/node_modules/webpack/lib/webpack.js');
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
+    _compiler.run((err, stats) => {
+      if (err) {
+        console.log(chalk.red('Bundle error!'));
+        reject();
+      } else {
+        if (!_production && _maps) { 
+          fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
+          sourcemaps.flatten(_bundle, url => {
+            
+            // Fix various webpack stuff
+            url = url.replace('/~/', '/node_modules/');
+            url = url.replace('webpack:/', '');
+            url = url.replace('/(webpack)/', '/node_modules/webpack/');          
+            url = url.replace(/\/webpack\/bootstrap [a-z0-9]+/, '/node_modules/webpack/lib/webpack.js');
 
-          // Module-specific fixes
-          url = url.replace('/moment/locale ^/.*$', '/moment/locale/en-gb.js');
-          url = url.replace('/@blueprintjs/core/dist/components/src/components/', '/@blueprintjs/core/src/components/');
-          url = url.replace('/@blueprintjs/core/dist/src/', '/@blueprintjs/core/src/');
-          url = url.replace('/@blueprintjs/datetime/dist/src/', '/@blueprintjs/datetime/src/');
+            // Module-specific fixes
+            url = url.replace('/moment/locale ^/.*$', '/moment/locale/en-gb.js');
+            url = url.replace('/@blueprintjs/core/dist/components/src/components/', '/@blueprintjs/core/src/components/');
+            url = url.replace('/@blueprintjs/core/dist/src/', '/@blueprintjs/core/src/');
+            url = url.replace('/@blueprintjs/datetime/dist/src/', '/@blueprintjs/datetime/src/');
 
-          // All source files are mapped from outside the /dist directory
-          if ( url.indexOf('dist/app.js') < 0 ) {
-            const currentPath = path.resolve('.')
-            url = url.replace(`${currentPath}/dist`, currentPath);
-          }
+            // All source files are mapped from outside the /dist directory
+            if ( url.indexOf('dist/app.js') < 0 ) {
+              const currentPath = path.resolve('.')
+              url = url.replace(`${currentPath}/dist`, currentPath);
+            }
 
-          // Good to go!
-          return url;
-        }); 
+            // Good to go!
+            return url;
+          }).then(() => {
+            console.log(chalk.gray('Bundle ready!'));
+            resolve();
+          }); 
+        } else {
+          console.log(chalk.gray('Bundle ready!'));
+          resolve();
+        }
       }
-      console.log(chalk.gray('Bundle ready!'));
-      if (callback) { callback(); }
-    }
+    });
   });
 }
 

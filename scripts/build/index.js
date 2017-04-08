@@ -57,25 +57,22 @@ transpiler.configure(options.sourceScriptsGlob, options.transpilerOptions);
 bundler.configure(options.tmpScriptsMain, options.scriptsBundle, options.production, false);
 
 
-// Run everything
-console.log('assets...');
-assets.copy();
-
-console.log('styles...');
-styles.compile();
-
-console.log('transpile...');
-transpiler.transpileAll();
-
-console.log('bundle...');
-bundler.bundle(() => {
-  if (options.production) {
-    console.log('minify...');
-    fs.writeFileSync(
-      options.scriptsBundle, 
-      UglifyJS.minify([options.scriptsBundle], { compress: { dead_code: true } }).code
-    );
-  }
-  console.log('Done!');
-});
-
+// Run everything in sequence
+console.log(chalk.green('Copy Assets...'));
+assets.copy()
+  .then(() => console.log(chalk.green('Compile Styles...')))
+  .then(() => styles.compile())
+  .then(() => console.log(chalk.green('Transpile Scripts...')))
+  .then(() => transpiler.transpileAll())
+  .then(() => console.log(chalk.green('Bundle Scripts...')))
+  .then(() => bundler.bundle())
+  .then(() => {
+    if (options.production) {
+    console.log(chalk.green('Minify Scripts...'));
+      fs.writeFileSync(
+        options.scriptsBundle, 
+        UglifyJS.minify([options.scriptsBundle], { compress: { dead_code: true } }).code
+      );
+    }
+    console.log(chalk.green('Done!'));
+  });

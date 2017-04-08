@@ -13,12 +13,15 @@ function configure(main, paths, bundle) {
 }
 
 function compile(main = _main, paths = _paths, bundle = _bundle) {
-  const result = sass.renderSync({
-    file: main,
-    includePaths: paths
+  return new Promise((resolve, reject) => {
+    const result = sass.renderSync({
+      file: main,
+      includePaths: paths
+    });
+    fs.writeFileSync(bundle, result.css);
+    console.log(chalk.gray('Styles ready!'));
+    resolve();
   });
-  fs.writeFileSync(bundle, result.css);
-  console.log(chalk.gray('Styles ready!'));
 }
 
 module.exports = {

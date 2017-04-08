@@ -68,10 +68,7 @@ function exclude(fileName, extensions = ['.swp', '.swo']) {
 function updateStyles(event, fileName) {
   return new Promise((resolve, reject) => {
     if (event === 'add' || event === 'change' || event === 'unlink') {
-      styles.compile();
-      liveServer.change(fileName);
-      stylesPending--;
-      resolve('Styles done!');
+      resolve(styles.compile().then(() => liveServer.change(fileName)));;
     }
   });
 }
@@ -82,7 +79,7 @@ function updateScripts(event, fileName) {
 
     // Quick-transpile file on 'add' or 'change'
     if (event === 'add' || event === 'change') {
-      transpiler.transpile(fileName);
+      resolve(transpiler.transpile(fileName));
     }
 
     // Re-bundle on every change, then optionally typecheck and generate sourcemap
@@ -91,13 +88,11 @@ function updateScripts(event, fileName) {
         liveServer.change(options.scriptsBundle);
         if (options.modeTasks.transpileAll) { 
           setTimeout(function () {
-            transpiler.transpileAll();       
-            scriptsPending--;
-            resolve('Scripts done!');
+            resolve(transpiler.transpileAll());
           }, 1000); 
-        } else {     
+        } else {
           scriptsPending--;
-          resolve('Scripts done!');
+          resolve(null);
         }
       });
     }
@@ -152,50 +147,50 @@ bundler.configure(
 // BUILD AND START WATCHING
 // ...
 
-// Copy static content
-assets.copy();
+// Run build first
+assets.copy()
+  .then(() => styles.compile())
+  .then(() => transpiler.transpileAll())
+  .then(() => bundler.bundle())
+  .then(() => startLiveServer())
+  .then(() => {
 
-// First-run styles
-styles.compile();
+    // Watcher for all style source files
+    const styleWatch = chokidar.watch(options.sourceStylesGlob, {
+      persistent: true,
+      ignoreInitial: true
+    }).on('all', (event, fileName) => {
 
-// Watcher for all style source files
-const styleWatch = chokidar.watch(options.sourceStylesGlob, {
-  persistent: true,
-  ignoreInitial: true
-}).on('all', (event, fileName) => {
+      // Ignore files
+      if (exclude(fileName)) { return; }
 
-  // Ignore files
-  if (exclude(fileName)) { return; }
+      // Run update or queue it up
+      if (stylesPending > 0 && stylesPending < 2) {
+        stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
+        stylesPending++;
+      } else if (stylesPending <= 0) {
+        stylesPromise = updateStyles(event, fileName);
+        stylesPending = 1;
+      }
+    });
 
-  // Run update or queue it up
-  if (stylesPending > 0 && stylesPending < 2) {
-    stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
-    stylesPending++;
-  } else if (stylesPending <= 0) {
-    stylesPromise = updateStyles(event, fileName);
-    stylesPending = 1;
-  }
-});
+    // Watcher for all .ts and .tsx files
+    const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 
+      persistent: true,
+      ignoreInitial: true
+    }).on('all', (event, fileName) => {
 
-// First-run transpile and bundle
-transpiler.transpileAll();
-bundler.bundle(startLiveServer);
+      // Ignore files
+      if (exclude(fileName)) { return; }
 
-// Watcher for all .ts and .tsx files
-const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 
-  persistent: true,
-  ignoreInitial: true
-}).on('all', (event, fileName) => {
+      // Run update or queue it up 
+      if (scriptsPending > 0 && scriptsPending < 2) {
+        scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
+        scriptsPending++;
+      } else if (scriptsPending <= 0) {
+        scriptsPromise = updateScripts(event, fileName);
+        scriptsPending = 1;
+      }
+    });
 
-  // Ignore files
-  if (exclude(fileName)) { return; }
-
-  // Run update or queue it up 
-  if (scriptsPending > 0 && scriptsPending < 2) {
-    scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
-    scriptsPending++;
-  } else if (scriptsPending <= 0) {
-    scriptsPromise = updateScripts(event, fileName);
-    scriptsPending = 1;
-  }
-});
+  });

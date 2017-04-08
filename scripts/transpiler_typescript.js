@@ -36,66 +36,74 @@ function configure(sourceGlob, options) {
 
 // Helper to do a (fast) transpile of a single file
 function transpile(name) {
+  return new Promise((resolve, reject) => {
 
-  // Abort if language service isn't configured yet
-  if (!_service) { 
-    console.error('Run `configure` before running `transpile`!');
-    return null;
-  }
-  
-  // TODO: handle weird filename formats better
-  if (name.startsWith('src')) { name = './' + name; }
+    // Abort if language service isn't configured yet
+    if (!_service) { 
+      console.log(chalk.red('Run `configure` before running `transpile`!'));
+      reject();
+    } else {
 
-  // Bump the file version
-  if (_metadata[name]) {
-    _metadata[name].version++;
-  } else {
-    _metadata[name] = { version: 0 };
-  }
+      // TODO: handle weird filename formats better
+      if (name.startsWith('src')) { name = './' + name; }
 
-  // Emit the output
-  const output = _service.getEmitOutput(name);
-  if (output.emitSkipped) {
-    console.log(chalk.gray(`Quick transpile ${name} skipped!`));
-  } else {
-    console.log(chalk.gray(`Quick transpile ${name} done!`));
-  }
+      // Bump the file version
+      if (_metadata[name]) {
+        _metadata[name].version++;
+      } else {
+        _metadata[name] = { version: 0 };
+      }
 
-  // Write output files
-  output.outputFiles.forEach(o => {
-    utilities.ensureDirectoryExistence(o.name);
-    fs.writeFileSync(o.name, o.text, "utf8");
+      // Emit the output
+      const output = _service.getEmitOutput(name);
+      if (output.emitSkipped) {
+        console.log(chalk.red(`Transpile ${name} skipped!`));
+        reject();
+      } else {
+
+        // Write output files to disk
+        output.outputFiles.forEach(o => {
+          utilities.ensureDirectoryExistence(o.name);
+          fs.writeFileSync(o.name, o.text, "utf8");
+        });
+        console.log(chalk.gray(`Transpile ${name} done!`));
+        resolve();
+      }
+    }
   });
 }
 
 // Helper to do a (slow) full transpile with error reporting
 function transpileAll(sourceGlob = _sourceGlob, options = _options) {
+  return new Promise((resolve, reject) => {
+    // Make a new program with the latest sourceFiles
+    const sourceFiles = glob.sync(sourceGlob);
+    _program = ts.createProgram(sourceFiles, options);
 
-  // Make a new program with the latest sourceFiles
-  const sourceFiles = glob.sync(sourceGlob);
-  _program = ts.createProgram(sourceFiles, options);
+    // Emit and get diagnostics
+    const emitResult = _program.emit();
+    const allDiagnostics = ts.getPreEmitDiagnostics(_program).concat(emitResult.diagnostics);
 
-  // Emit and get diagnostics
-  const emitResult = _program.emit();
-  const allDiagnostics = ts.getPreEmitDiagnostics(_program).concat(emitResult.diagnostics);
+    // Log out all diagnostics
+    allDiagnostics.forEach(diagnostic => {
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+      if (!diagnostic.file) {
+        console.log(chalk.yellow(`Transpile Error: ${message}`));
+      } else {
+        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        console.log(chalk.yellow(`Transpile Error: ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`));
+      }
+    });
 
-  // Log out all diagnostics
-  allDiagnostics.forEach(diagnostic => {
-    const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-    if (!diagnostic.file) {
-      console.log(chalk.yellow(`TS: ${message}`));
+    // Log out skipped or complete message
+    if (emitResult.emitSkipped) {
+      console.log(chalk.red('Full transpile skipped!'));
+      reject();
     } else {
-      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-      console.log(chalk.yellow(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`));
+      console.log(chalk.gray('Full transpile done!'));
+      resolve(emitResult);
     }
   });
-
-  // Log out skipped or complete message
-  if (emitResult.emitSkipped) {
-    console.log(chalk.gray('Full transpile skipped!'));
-  } else {
-    console.log(chalk.gray('Full transpile done!'));
-  }
 }
 
 // Public API

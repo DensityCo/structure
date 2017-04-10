@@ -1,4 +1,5 @@
 const fs = require('fs');
+const chalk = require('chalk');
 const UglifyJS = require('uglify-js');
 
 const assets = require('../assets');
@@ -68,7 +69,7 @@ assets.copy()
   .then(() => bundler.bundle())
   .then(() => {
     if (options.production) {
-    console.log(chalk.green('Minify Scripts...'));
+      console.log(chalk.green('Minify Scripts...'));
       fs.writeFileSync(
         options.scriptsBundle, 
         UglifyJS.minify([options.scriptsBundle], { compress: { dead_code: true } }).code

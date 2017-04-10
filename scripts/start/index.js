@@ -68,58 +68,80 @@ function exclude(fileName, extensions = ['.swp', '.swo']) {
 function updateStyles(event, fileName) {
   return new Promise((resolve, reject) => {
     if (event === 'add' || event === 'change' || event === 'unlink') {
-      resolve(styles.compile().then(() => liveServer.change(fileName)));;
+      styles.compile().then(() => {
+        liveServer.change(fileName);
+        stylesPending--;
+        resolve();
+      });;
     }
+  }).catch(err => {
+    console.log(chalk.red('ERROR: ' + err));
+    stylesPending--;
+    resolve();
   });
 }
 
 // Helper to update the scripts bundle
 function updateScripts(event, fileName) {
   return new Promise((resolve, reject) => {
+    let pending = null;
 
     // Quick-transpile file on 'add' or 'change'
     if (event === 'add' || event === 'change') {
-      resolve(transpiler.transpile(fileName));
+      pending = transpiler.transpile(fileName).then(bundler.bundle);
+    } else if (event === 'unlink') {
+      pending = bundler.bundle();
     }
 
     // Re-bundle on every change, then optionally typecheck and generate sourcemap
-    if (event === 'add' || event === 'change' || event === 'unlink') {
-      bundler.bundle(() => {
+    if (pending) {
+
+      // Update live server last
+      pending.then(() => {
         liveServer.change(options.scriptsBundle);
-        if (options.modeTasks.transpileAll) { 
-          setTimeout(function () {
-            resolve(transpiler.transpileAll());
-          }, 1000); 
-        } else {
-          scriptsPending--;
-          resolve(null);
-        }
+        scriptsPending--;
+        resolve();
       });
+
+      // Queue a full transpile if we're doing type checking
+      if (options.modeTasks.transpileAll) {
+        pending.then(setTimeout.bind(null, transpiler.transpileAll, 1000));
+      }
+    } else {
+      resolve();
     }
+
+  }).catch(err => {
+    console.log(chalk.red('ERROR: ' + err));
+    scriptsPending--;
+    resolve();
   });
 }
 
 // Helper to start live-server
 function startLiveServer () {
+  return new Promise((resolve, reject) => {
 
-  // Configure live-server
-  const params = {
-    port: 8080,
-    host: "0.0.0.0",
-    root: "./dist",
-    file: "index.html",
-    mount: [['/node_modules', './node_modules']],
-    open: true,
-    wait: 0,
-    logLevel: 2
-  };
+    // Configure live-server
+    const params = {
+      port: 8080,
+      host: "0.0.0.0",
+      root: "./dist",
+      file: "index.html",
+      mount: [['/node_modules', './node_modules']],
+      open: true,
+      wait: 0,
+      logLevel: 2
+    };
 
-  // Start monkey-patched live-server.
-  // We remove the listeners so it doesn't watch any files.
-  // And add a "change" helper so we can manually run the change listener. 
-  liveServer.start(params);
-  liveServer.change = liveServer.watcher.listeners('change')[0];
-  liveServer.watcher.removeAllListeners();
+    // Start monkey-patched live-server.
+    // We remove the listeners so it doesn't watch any files.
+    // And add a "change" helper so we can manually run the change listener. 
+    liveServer.start(params);
+    liveServer.change = liveServer.watcher.listeners('change')[0];
+    liveServer.watcher.removeAllListeners();
+    resolve();
+  });
 }
 
 // Set up style compiler

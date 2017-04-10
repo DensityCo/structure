@@ -26,7 +26,7 @@ function configure(main, bundle, production = false, maps = false) {
 }
 
 // Re-bundle helper method
-function bundle(callback = null, dest = path.dirname(_bundle)) {
+function bundle(dest = path.dirname(_bundle)) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }

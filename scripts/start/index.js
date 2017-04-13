@@ -128,7 +128,11 @@ function startLiveServer () {
       host: "0.0.0.0",
       root: "./dist",
       file: "index.html",
-      mount: [['/node_modules', './node_modules']],
+      mount: [
+        ['/node_modules', './node_modules'],
+        ['/src', './src'],
+        ['/tmp', './tmp']
+      ],
       open: true,
       wait: 0,
       logLevel: 2

@@ -17,17 +17,17 @@ function configure(main, paths, bundle) {
 
 function compile(main = _main, paths = _paths, bundle = _bundle) {
   return new Promise((resolve, reject) => {
-    const css = sass.renderSync({
+    const compiled = sass.renderSync({
       file: main,
       includePaths: paths
     });
-    postcss([ autoprefixer ]).process(css).then(function (result) {
-        result.warnings().forEach(function (warn) {
-          console.log(chalk.red(warn.toString()));
-        });
-        fs.writeFileSync(bundle, result.css);
-        console.log(chalk.gray('Styles ready!'));
-        resolve();
+    postcss([ autoprefixer ]).process(compiled.css).then(function (prefixed) {
+      prefixed.warnings().forEach(function (warn) {
+        console.log(chalk.red(warn.toString()));
+      });
+      fs.writeFileSync(bundle, prefixed.css);
+      console.log(chalk.gray('Styles ready!'));
+      resolve();
     });
   });
 }

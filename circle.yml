@@ -1,0 +1,16 @@
+dependencies:
+  pre:
+    - echo "//npmregistry.density.rodeo/:_authToken=${PRIVATE_NPM_TOKEN}" >> ~/.npmrc
+
+test:
+  override:
+    - /bin/true
+  post:
+    - |
+      if [ "$CIRCLE_BRANCH" == "master" ]; then
+        echo "Trying to publish package, if it fails then this verison has already been published."
+        npm publish .
+      else
+        echo "Packages are only published to npm on branch 'master'."
+      fi
+      exit 0

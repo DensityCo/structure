@@ -102,7 +102,7 @@ function updateScripts(event, fileName) {
 
       // Update live server last
       pending.then(() => {
-        liveServer.change(options.scriptsBundle);
+        liveServer.change(options.scriptsDest);
         scriptsPending--;
         resolve();
       });

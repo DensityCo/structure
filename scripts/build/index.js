@@ -3,7 +3,7 @@ const chalk = require('chalk');
 const UglifyJS = require('uglify-js');
 
 const assets = require('../assets');
-const styles = require('../styles');
+const styles = require('../styles_sass');
 const transpiler = require('../transpiler_typescript');
 const bundler = require('../bundler_webpack');
 

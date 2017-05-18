@@ -1,5 +1,5 @@
 // Structure file
-const structure = require('@density/structure');
+const structure = require('@density/build-js');
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(

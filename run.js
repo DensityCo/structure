@@ -1,7 +1,5 @@
-const structure = require('./index');
-
-// Options
-const options = {};
+// Structure file
+const structure = require('@density/structure');
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(

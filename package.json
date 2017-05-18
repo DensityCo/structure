@@ -1,6 +1,6 @@
 {
   "name": "@density/build-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
   "main": "index.js",
   "bin": {

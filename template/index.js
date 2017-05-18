@@ -47,10 +47,22 @@ const bundler = structure.webpack(
   }
 );
 
-// Run the "start" function!
-structure.start({
-  assets: assets,
-  styles: styles,
-  transpiler: transpiler,
-  bundler: bundler,
-});
+// Run the correct task!
+console.log(process.argv[2])
+if (process.argv.length > 2 && process.argv[2] === "build") {
+  structure.build({
+    assets: assets,
+    styles: styles,
+    transpiler: transpiler,
+    bundler: bundler,
+  });
+} else if (process.argv.length <= 2 || process.argv[2] === "start") {
+  structure.start({
+    assets: assets,
+    styles: styles,
+    transpiler: transpiler,
+    bundler: bundler,
+  });
+} else {
+  throw new Error("Unrecognized task!");
+}

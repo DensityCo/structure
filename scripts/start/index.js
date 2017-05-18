@@ -4,6 +4,9 @@ const liveServer = require('live-server');
 
 function start(options) {
 
+  // Extract options
+  const { assets, styles, transpiler, bundler } = options;
+
   // Pending callbacks
   let stylesPromise = null;
   let scriptsPromise = null;
@@ -39,9 +42,9 @@ function start(options) {
 
       // Quick-transpile file on 'add' or 'change'
       if (event === 'add' || event === 'change') {
-        pending = options.transpiler.transpile(fileName).then(options.bundler.bundle);
+        pending = transpiler.transpile(fileName).then(bundler.bundle);
       } else if (event === 'unlink') {
-        pending = options.bundler.bundle();
+        pending = bundler.bundle();
       }
 
       // Re-bundle on every change, then optionally typecheck and generate sourcemap
@@ -49,13 +52,13 @@ function start(options) {
 
         // Update live server last
         pending.then(() => {
-          liveServer.change(options.bundler.outFile);
+          liveServer.change(bundler.outFile);
           scriptsPending--;
           resolve();
         });
 
         // Queue a full transpile if we're doing type checking
-        pending.then(setTimeout.bind(null, options.transpiler.transpileAll, 1000));
+        pending.then(setTimeout.bind(null, transpiler.transpileAll, 1000));
       } else {
         resolve();
       }
@@ -78,9 +81,9 @@ function start(options) {
         root: "./dist",
         file: "index.html",
         mount: [
-          ['/node_modules', process.env.STRUCT_NODE_MODULES || './node_modules'],
-          ['/src', process.env.STRUCT_SRC_FOLDER || './src'],
-          ['/tmp', process.env.STRUCT_TMP_FOLDER || './tmp']
+          ['/node_modules', './node_modules'],
+          ['/src', './src'],
+          ['/tmp', './tmp'],
         ],
         open: true,
         wait: 0,
@@ -103,14 +106,14 @@ function start(options) {
 
   // Run build first
   assets.copy()
-    .then(() => options.styles.compile())
-    .then(() => options.transpiler.transpileAll())
-    .then(() => options.bundler.bundle())
+    .then(() => styles.compile())
+    .then(() => transpiler.transpileAll())
+    .then(() => bundler.bundle())
     .then(() => startLiveServer())
     .then(() => {
 
       // Watcher for all style source files
-      const styleWatch = chokidar.watch(options.stylesGlob, {
+      const styleWatch = chokidar.watch(styles.inGlob, {
         persistent: true,
         ignoreInitial: true
       }).on('all', (event, fileName) => {
@@ -129,7 +132,7 @@ function start(options) {
       });
 
       // Watcher for all .ts and .tsx files
-      const scriptWatch = chokidar.watch(options.scriptsGlob, { 
+      const scriptWatch = chokidar.watch(transpiler.inGlob, { 
         persistent: true,
         ignoreInitial: true
       }).on('all', (event, fileName) => {

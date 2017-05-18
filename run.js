@@ -5,10 +5,10 @@ const options = {};
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(
+  './src/index.html',
+  './dist/index.html',
   './src/assets',
   './dist/assets',
-  './src/*.html',
-  './dist',
 );
 
 // Set up styles
@@ -51,8 +51,6 @@ const bundler = structure.webpack(
 
 // Run the "start" function!
 structure.start({
-  stylesGlob: './src/styles/**/*.scss',
-  scriptsGlob: './src/scripts/**/*.ts*',
   assets: assets,
   styles: styles,
   transpiler: transpiler,

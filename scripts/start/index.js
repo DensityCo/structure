@@ -3,10 +3,57 @@ const chokidar = require('chokidar');
 const liveServer = require('live-server');
 
 const assets = require('../assets');
-const styles = require('../styles');
-const transpiler = require('../transpiler_typescript');
-const bundler = require('../bundler_webpack');
 
+// Pick a transpiler to use.
+let transpiler;
+if (process.env.STRUCT_TRANSPILER === 'typescript') {
+  transpiler = require('../transpiler_typescript');
+  console.log(`* Transpiling with typescript...`);
+} else if (process.env.STRUCT_TRANSPILER === 'babel') {
+  transpiler = require('../transpiler_babel');
+  console.log(`* Transpiling with babel...`);
+} else if (process.env.STRUCT_TRANSPILER !== undefined) {
+  // Something totaly custom
+  transpiler = require(process.env.STRUCT_TRANSPILER);
+  console.log(`* Transpiling with ${process.env.STRUCT_TRANSPILER}...`);
+} else {
+  // Defaults to typescript
+  transpiler = require('../transpiler_typescript');
+  console.log(`* Transpiling with typescript...`);
+}
+
+// Pick a bundler to use.
+let bundler;
+if (process.env.STRUCT_BUNDLER === 'typescript') {
+  bundler = require('../bundler_webpack');
+  console.log(`* Bundling with webpack...`);
+} else if (process.env.STRUCT_BUNDLER === 'browserify') {
+  bundler = require('../bundler_browserify');
+  console.log(`* Bundling with browserify...`);
+} else if (process.env.STRUCT_BUNDLER !== undefined) {
+  // Something totaly custom
+  bundler = require(process.env.STRUCT_BUNDLER);
+  console.log(`* Bundling with ${process.env.STRUCT_BUNDLER}...`);
+} else {
+  // Defaults to webpack
+  bundler = require('../bundler_webpack');
+  console.log(`* Bundling with webpack...`);
+}
+
+// Pick a css post-processor to use
+let styles;
+if (process.env.STRUCT_STYLES === 'sass' || process.env.STRUCT_STYLES == 'scss') {
+  styles = require('../styles_sass');
+  console.log(`* Post-processing css with sass...`);
+} else if (process.env.STRUCT_STYLES !== undefined) {
+  // Something totaly custom
+  styles = require(process.env.STRUCT_STYLES);
+  console.log(`* Post-processing css with ${process.env.STRUCT_STYLES}...`);
+} else {
+  // Defaults to sass
+  styles = require('../styles_sass');
+  console.log(`* Post-processing css with sass...`);
+}
 
 // Options
 const options = {};
@@ -31,7 +78,7 @@ options.stylesPaths = (
 ) || [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',
-  './node_modules/density-ui/lib'
+  './node_modules/density-ui/lib',
 ];
 
 // Default script sources and transpiled intermediates

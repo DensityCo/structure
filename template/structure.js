@@ -51,22 +51,19 @@ const bundler = structure.webpack(
   }
 );
 
+// Task options object
+const options = {
+  assets: assets,
+  styles: styles,
+  transpiler: transpiler,
+  bundler: bundler,
+};
+
 // Run the correct task!
-console.log(process.argv[2])
 if (process.argv.length > 2 && process.argv[2] === "build") {
-  structure.build({
-    assets: assets,
-    styles: styles,
-    transpiler: transpiler,
-    bundler: bundler,
-  });
+  structure.build(options);
 } else if (process.argv.length <= 2 || process.argv[2] === "start") {
-  structure.start({
-    assets: assets,
-    styles: styles,
-    transpiler: transpiler,
-    bundler: bundler,
-  });
+  structure.start(options);
 } else {
   throw new Error("Unrecognized task!");
 }

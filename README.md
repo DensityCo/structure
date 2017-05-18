@@ -1,4 +1,17 @@
-# build.js
+# Structure
+
+[![Dependency Status](https://david-dm.org/density/structure.svg)](https://david-dm.org/density/structure)
+[![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
+Structure is a modular build system for frontend projects. It's built to be modular and to supress
+lock in to any one technology - we're looking at you, Webpack. There is out of the box support for a
+number of transpilers ([typescript](https://www.typescriptlang.org/), [babel](https://babeljs.io)),
+a number of bundlers ([webpack](https://webpack.github.io/), [browserify](http://browserify.org/)),
+and a css post-processor ([sass](https://sass-lang.com)).
+
+## Why not use Webpack to do all of this?
+*PLACEHOLDER*
 
 ## A NodeJS transpiler/bundler Build System 
 

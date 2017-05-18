@@ -3,6 +3,9 @@
   "version": "1.1.0",
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
   "main": "index.js",
+  "scripts": {
+    "postinstall": "cp ./template/structure.js ../../structure.js"
+  },
   "bin": {
     "react-scripts": "./bin/react-scripts.js"
   },

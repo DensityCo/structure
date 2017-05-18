@@ -5,8 +5,9 @@ const options = {};
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(
-  ['./src/assets'],
-  null,
+  './src/assets',
+  './dist/assets',
+  './src/*.html',
   './dist',
 );
 

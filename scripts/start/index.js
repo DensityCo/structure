@@ -55,9 +55,7 @@ function start(options) {
         });
 
         // Queue a full transpile if we're doing type checking
-        if (options.modeTasks.transpileAll) {
-          pending.then(setTimeout.bind(null, transpiler.transpileAll, 1000));
-        }
+        pending.then(setTimeout.bind(null, options.transpiler.transpileAll, 1000));
       } else {
         resolve();
       }

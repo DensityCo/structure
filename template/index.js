@@ -1,4 +1,8 @@
-// Structure file
+// This template script can be used to start or build:
+// `node index.js start`
+// `node index.js build`
+
+// Structure dependency
 const structure = require('@density/build-js');
 
 // Set up assets copyier thingamajig

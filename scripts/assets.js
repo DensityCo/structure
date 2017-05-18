@@ -12,9 +12,10 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
   return {
 
     name: 'Assets Copier',
-    inFile: _inFile,
-    outFile: _outFile,
-    options: _options,
+    indexInFile: _indexInFile,
+    indexOutFile: _indexOutFile,
+    assetsInPath: _assetsInPath,
+    assetsOutPath: _assetsOutPath,
 
     copy: function () {
       return new Promise((resolve, reject) => {

@@ -22,19 +22,23 @@ options.mode = (process.argv.length > 2 && process.argv.slice(2)) || 'full';
 options.modeTasks = modeTaskMap[options.mode] || {};
 
 // Default style sources
-options.stylesBundle = './dist/app.css';
-options.sourceStylesGlob = './src/styles/**/*.scss';
-options.sourceStylesMain = './src/styles/main.scss';
-options.sourceStylesPaths = [
+options.stylesDest = process.env.STRUCT_STYLES_DEST || './dist/app.css';
+options.stylesEntry = process.env.STRUCT_STYLES_ENTRY || './src/styles/main.scss';
+options.stylesGlob = process.env.STRUCT_STYLES_GLOB || './src/styles/**/*.scss';
+options.stylesPaths = (
+  process.env.STRUCT_STYLES_PATHS && 
+  process.env.STRUCT_STYLES_PATHS.split(',')
+) || [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',
   './node_modules/density-ui/lib'
 ];
 
 // Default script sources and transpiled intermediates
-options.scriptsBundle = './dist/app.js';
-options.sourceScriptsGlob = './src/scripts/**/*.ts*';
-options.tmpScriptsMain = './tmp/main.js';
+options.scriptsDest = process.env.STRUCT_SCRIPTS_DEST || './dist/app.js';
+options.scriptsEntry = process.env.STRUCT_SCRIPTS_ENTRY || './tmp/main.js';
+options.scriptsGlob = process.env.STRUCT_SCRIPTS_GLOB || './src/scripts/**/*.ts*';
+
 
 // Default TypeScript compiler options
 options.transpilerOptions = {
@@ -98,7 +102,7 @@ function updateScripts(event, fileName) {
 
       // Update live server last
       pending.then(() => {
-        liveServer.change(options.scriptsBundle);
+        liveServer.change(options.scriptsDest);
         scriptsPending--;
         resolve();
       });
@@ -129,9 +133,9 @@ function startLiveServer () {
       root: "./dist",
       file: "index.html",
       mount: [
-        ['/node_modules', './node_modules'],
-        ['/src', './src'],
-        ['/tmp', './tmp']
+        ['/node_modules', process.env.STRUCT_NODE_MODULES || './node_modules'],
+        ['/src', process.env.STRUCT_SRC_FOLDER || './src'],
+        ['/tmp', process.env.STRUCT_TMP_FOLDER || './tmp']
       ],
       open: true,
       wait: 0,
@@ -150,21 +154,21 @@ function startLiveServer () {
 
 // Set up style compiler
 styles.configure(
-  options.sourceStylesMain,
-  options.sourceStylesPaths,
-  options.stylesBundle
+  options.stylesEntry,
+  options.stylesPaths,
+  options.stylesDest
 );
 
 // Set up ts transpiler
 transpiler.configure(
-  options.sourceScriptsGlob,
+  options.scriptsGlob,
   options.transpilerOptions
 );
 
 // Set up webpack bundler
 bundler.configure(
-  options.tmpScriptsMain,
-  options.scriptsBundle,
+  options.scriptsEntry,
+  options.scriptsDest,
   false,
   options.modeTasks.bundleMap
 );
@@ -182,7 +186,7 @@ assets.copy()
   .then(() => {
 
     // Watcher for all style source files
-    const styleWatch = chokidar.watch(options.sourceStylesGlob, {
+    const styleWatch = chokidar.watch(options.stylesGlob, {
       persistent: true,
       ignoreInitial: true
     }).on('all', (event, fileName) => {
@@ -201,7 +205,7 @@ assets.copy()
     });
 
     // Watcher for all .ts and .tsx files
-    const scriptWatch = chokidar.watch(options.sourceScriptsGlob, { 
+    const scriptWatch = chokidar.watch(options.scriptsGlob, { 
       persistent: true,
       ignoreInitial: true
     }).on('all', (event, fileName) => {

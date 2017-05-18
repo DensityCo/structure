@@ -16,20 +16,23 @@ options.production =
   process.argv.length < 3 ||
   process.argv.slice(2).indexOf('dev') < 0;
 
-// Style sources
-options.stylesBundle = './dist/app.css';
-options.sourceStylesGlob = './src/styles/**/*.scss';
-options.sourceStylesMain = './src/styles/main.scss';
-options.sourceStylesPaths = [
+// Default style sources
+options.stylesDest = process.env.STRUCT_STYLES_DEST || './dist/app.css';
+options.stylesEntry = process.env.STRUCT_STYLES_ENTRY || './src/styles/main.scss';
+options.stylesGlob = process.env.STRUCT_STYLES_GLOB || './src/styles/**/*.scss';
+options.stylesPaths = (
+  process.env.STRUCT_STYLES_PATHS && 
+  process.env.STRUCT_STYLES_PATHS.split(',')
+) || [
   './node_modules/bourbon/app/assets/stylesheets',
   './node_modules/node-reset-scss/scss',
   './node_modules/density-ui/lib'
 ];
 
-// Script sources and transpiled intermediates
-options.scriptsBundle = './dist/app.js';
-options.sourceScriptsGlob = './src/scripts/**/*.ts*';
-options.tmpScriptsMain = './tmp/main.js';
+// Default script sources and transpiled intermediates
+options.scriptsDest = process.env.STRUCT_SCRIPTS_DEST || './dist/app.js';
+options.scriptsEntry = process.env.STRUCT_SCRIPTS_ENTRY || './tmp/main.js';
+options.scriptsGlob = process.env.STRUCT_SCRIPTS_GLOB || './src/scripts/**/*.ts*';
 
 // TypeScript compiler options
 options.transpilerOptions = {
@@ -49,13 +52,13 @@ if (fs.existsSync('./build.json')) {
 }
 
 // Set up style compiler
-styles.configure(options.sourceStylesMain, options.sourceStylesPaths, options.stylesBundle);
+styles.configure(options.stylesEntry, options.stylesPaths, options.stylesDest);
 
 // Set up ts transpiler
-transpiler.configure(options.sourceScriptsGlob, options.transpilerOptions);
+transpiler.configure(options.scriptsGlob, options.transpilerOptions);
 
 // Set up webpack bundler
-bundler.configure(options.tmpScriptsMain, options.scriptsBundle, options.production, false);
+bundler.configure(options.scriptsEntry, options.scriptsDest, options.production, false);
 
 
 // Run everything in sequence
@@ -71,8 +74,8 @@ assets.copy()
     if (options.production) {
       console.log(chalk.green('Minify Scripts...'));
       fs.writeFileSync(
-        options.scriptsBundle, 
-        UglifyJS.minify([options.scriptsBundle], { compress: { dead_code: true } }).code
+        options.scriptsDest, 
+        UglifyJS.minify([options.scriptsDest], { compress: { dead_code: true } }).code
       );
     }
     console.log(chalk.green('Done!'));

@@ -2,272 +2,154 @@ const fs = require('fs');
 const chokidar = require('chokidar');
 const liveServer = require('live-server');
 
-const assets = require('../assets');
+function start(options) {
 
-// Pick a transpiler to use.
-let transpiler;
-if (process.env.STRUCT_TRANSPILER === 'typescript') {
-  transpiler = require('../transpiler_typescript');
-  console.log(`* Transpiling with typescript...`);
-} else if (process.env.STRUCT_TRANSPILER === 'babel') {
-  transpiler = require('../transpiler_babel');
-  console.log(`* Transpiling with babel...`);
-} else if (process.env.STRUCT_TRANSPILER !== undefined) {
-  // Something totaly custom
-  transpiler = require(process.env.STRUCT_TRANSPILER);
-  console.log(`* Transpiling with ${process.env.STRUCT_TRANSPILER}...`);
-} else {
-  // Defaults to typescript
-  transpiler = require('../transpiler_typescript');
-  console.log(`* Transpiling with typescript...`);
-}
+  // Pending callbacks
+  let stylesPromise = null;
+  let scriptsPromise = null;
+  let scriptsPending = 0;
+  let stylesPending = 0;
 
-// Pick a bundler to use.
-let bundler;
-if (process.env.STRUCT_BUNDLER === 'typescript') {
-  bundler = require('../bundler_webpack');
-  console.log(`* Bundling with webpack...`);
-} else if (process.env.STRUCT_BUNDLER === 'browserify') {
-  bundler = require('../bundler_browserify');
-  console.log(`* Bundling with browserify...`);
-} else if (process.env.STRUCT_BUNDLER !== undefined) {
-  // Something totaly custom
-  bundler = require(process.env.STRUCT_BUNDLER);
-  console.log(`* Bundling with ${process.env.STRUCT_BUNDLER}...`);
-} else {
-  // Defaults to webpack
-  bundler = require('../bundler_webpack');
-  console.log(`* Bundling with webpack...`);
-}
+  // Helper to filter out hidden/tmp files
+  function exclude(fileName, extensions = ['.swp', '.swo']) {
+    return extensions.reduce((a, n) => fileName.endsWith(n) || a, false);
+  }
 
-// Pick a css post-processor to use
-let styles;
-if (process.env.STRUCT_STYLES === 'sass' || process.env.STRUCT_STYLES == 'scss') {
-  styles = require('../styles_sass');
-  console.log(`* Post-processing css with sass...`);
-} else if (process.env.STRUCT_STYLES !== undefined) {
-  // Something totaly custom
-  styles = require(process.env.STRUCT_STYLES);
-  console.log(`* Post-processing css with ${process.env.STRUCT_STYLES}...`);
-} else {
-  // Defaults to sass
-  styles = require('../styles_sass');
-  console.log(`* Post-processing css with sass...`);
-}
+  // Helper to update styles
+  function updateStyles(event, fileName) {
+    return new Promise((resolve, reject) => {
+      if (event === 'add' || event === 'change' || event === 'unlink') {
+        styles.compile().then(() => {
+          liveServer.change(fileName);
+          stylesPending--;
+          resolve();
+        });;
+      }
+    }).catch(err => {
+      console.log(chalk.red('ERROR: ' + err));
+      stylesPending--;
+      resolve();
+    });
+  }
 
-// Options
-const options = {};
+  // Helper to update the scripts bundle
+  function updateScripts(event, fileName) {
+    return new Promise((resolve, reject) => {
+      let pending = null;
 
-// "mode" argument and map to various settings (maybe unnecessary abstraction)
-const modeTaskMap = {
-  full: { bundleMap: true, transpileMap: true, transpileAll: true },
-  bundle: { bundleMap: true },
-  transpile: { transpileAll: true },
-  lean: {}
-};
-options.mode = (process.argv.length > 2 && process.argv.slice(2)) || 'full';
-options.modeTasks = modeTaskMap[options.mode] || {};
+      // Quick-transpile file on 'add' or 'change'
+      if (event === 'add' || event === 'change') {
+        pending = options.transpiler.transpile(fileName).then(options.bundler.bundle);
+      } else if (event === 'unlink') {
+        pending = options.bundler.bundle();
+      }
 
-// Default style sources
-options.stylesDest = process.env.STRUCT_STYLES_DEST || './dist/app.css';
-options.stylesEntry = process.env.STRUCT_STYLES_ENTRY || './src/styles/main.scss';
-options.stylesGlob = process.env.STRUCT_STYLES_GLOB || './src/styles/**/*.scss';
-options.stylesPaths = (
-  process.env.STRUCT_STYLES_PATHS && 
-  process.env.STRUCT_STYLES_PATHS.split(',')
-) || [
-  './node_modules/bourbon/app/assets/stylesheets',
-  './node_modules/node-reset-scss/scss',
-  './node_modules/density-ui/lib',
-];
+      // Re-bundle on every change, then optionally typecheck and generate sourcemap
+      if (pending) {
 
-// Default script sources and transpiled intermediates
-options.scriptsDest = process.env.STRUCT_SCRIPTS_DEST || './dist/app.js';
-options.scriptsEntry = process.env.STRUCT_SCRIPTS_ENTRY || './tmp/main.js';
-options.scriptsGlob = process.env.STRUCT_SCRIPTS_GLOB || './src/scripts/**/*.ts*';
+        // Update live server last
+        pending.then(() => {
+          liveServer.change(options.bundler.outFile);
+          scriptsPending--;
+          resolve();
+        });
 
-
-// Default TypeScript compiler options
-options.transpilerOptions = {
-  allowSyntheticDefaultImports: true,
-  alwaysStrict: true,
-  jsx: 2, // ENUM: JsxEmit.React, CLI: react
-  sourceMap: options.modeTasks.transpileMap,
-  module: 1, // ENUM: ModuleKind.CommonJS, CLI: commonjs
-  target: 1, // ENUM: ScriptTarget.ES5, CLI: es5
-  moduleResolution: 2, // ENUM: ModuleResolutionKind.NodeJs, CLI: node
-  outDir: './tmp'
-}
-
-// Overwrite defaults with options from config file ᕕ(ᐛ)ᕗ
-if (fs.existsSync('./build.json')) {
-  Object.assign(options, JSON.parse(fs.readFileSync('./build.json').toString()));
-}
-
-// Pending callbacks
-let stylesPromise = null;
-let scriptsPromise = null;
-let scriptsPending = 0;
-let stylesPending = 0;
-
-// Helper to filter out hidden/tmp files
-function exclude(fileName, extensions = ['.swp', '.swo']) {
-  return extensions.reduce((a, n) => fileName.endsWith(n) || a, false);
-}
-
-// Helper to update styles
-function updateStyles(event, fileName) {
-  return new Promise((resolve, reject) => {
-    if (event === 'add' || event === 'change' || event === 'unlink') {
-      styles.compile().then(() => {
-        liveServer.change(fileName);
-        stylesPending--;
+        // Queue a full transpile if we're doing type checking
+        if (options.modeTasks.transpileAll) {
+          pending.then(setTimeout.bind(null, transpiler.transpileAll, 1000));
+        }
+      } else {
         resolve();
-      });;
-    }
-  }).catch(err => {
-    console.log(chalk.red('ERROR: ' + err));
-    stylesPending--;
-    resolve();
-  });
-}
+      }
 
-// Helper to update the scripts bundle
-function updateScripts(event, fileName) {
-  return new Promise((resolve, reject) => {
-    let pending = null;
+    }).catch(err => {
+      console.log(chalk.red('ERROR: ' + err));
+      scriptsPending--;
+      resolve();
+    });
+  }
 
-    // Quick-transpile file on 'add' or 'change'
-    if (event === 'add' || event === 'change') {
-      pending = transpiler.transpile(fileName).then(bundler.bundle);
-    } else if (event === 'unlink') {
-      pending = bundler.bundle();
-    }
+  // Helper to start live-server
+  function startLiveServer () {
+    return new Promise((resolve, reject) => {
 
-    // Re-bundle on every change, then optionally typecheck and generate sourcemap
-    if (pending) {
+      // Configure live-server
+      const params = {
+        port: 8080,
+        host: "0.0.0.0",
+        root: "./dist",
+        file: "index.html",
+        mount: [
+          ['/node_modules', process.env.STRUCT_NODE_MODULES || './node_modules'],
+          ['/src', process.env.STRUCT_SRC_FOLDER || './src'],
+          ['/tmp', process.env.STRUCT_TMP_FOLDER || './tmp']
+        ],
+        open: true,
+        wait: 0,
+        logLevel: 2
+      };
 
-      // Update live server last
-      pending.then(() => {
-        liveServer.change(options.scriptsDest);
-        scriptsPending--;
-        resolve();
+      // Start monkey-patched live-server.
+      // We remove the listeners so it doesn't watch any files.
+      // And add a "change" helper so we can manually run the change listener. 
+      liveServer.start(params);
+      liveServer.change = liveServer.watcher.listeners('change')[0];
+      liveServer.watcher.removeAllListeners();
+      resolve();
+    });
+  }
+
+
+  // BUILD AND START WATCHING
+  // ...
+
+  // Run build first
+  assets.copy()
+    .then(() => options.styles.compile())
+    .then(() => options.transpiler.transpileAll())
+    .then(() => options.bundler.bundle())
+    .then(() => startLiveServer())
+    .then(() => {
+
+      // Watcher for all style source files
+      const styleWatch = chokidar.watch(options.stylesGlob, {
+        persistent: true,
+        ignoreInitial: true
+      }).on('all', (event, fileName) => {
+
+        // Ignore files
+        if (exclude(fileName)) { return; }
+
+        // Run update or queue it up
+        if (stylesPending > 0 && stylesPending < 2) {
+          stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
+          stylesPending++;
+        } else if (stylesPending <= 0) {
+          stylesPromise = updateStyles(event, fileName);
+          stylesPending = 1;
+        }
       });
 
-      // Queue a full transpile if we're doing type checking
-      if (options.modeTasks.transpileAll) {
-        pending.then(setTimeout.bind(null, transpiler.transpileAll, 1000));
-      }
-    } else {
-      resolve();
-    }
+      // Watcher for all .ts and .tsx files
+      const scriptWatch = chokidar.watch(options.scriptsGlob, { 
+        persistent: true,
+        ignoreInitial: true
+      }).on('all', (event, fileName) => {
 
-  }).catch(err => {
-    console.log(chalk.red('ERROR: ' + err));
-    scriptsPending--;
-    resolve();
-  });
+        // Ignore files
+        if (exclude(fileName)) { return; }
+
+        // Run update or queue it up 
+        if (scriptsPending > 0 && scriptsPending < 2) {
+          scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
+          scriptsPending++;
+        } else if (scriptsPending <= 0) {
+          scriptsPromise = updateScripts(event, fileName);
+          scriptsPending = 1;
+        }
+      });
+
+    });
 }
 
-// Helper to start live-server
-function startLiveServer () {
-  return new Promise((resolve, reject) => {
-
-    // Configure live-server
-    const params = {
-      port: 8080,
-      host: "0.0.0.0",
-      root: "./dist",
-      file: "index.html",
-      mount: [
-        ['/node_modules', process.env.STRUCT_NODE_MODULES || './node_modules'],
-        ['/src', process.env.STRUCT_SRC_FOLDER || './src'],
-        ['/tmp', process.env.STRUCT_TMP_FOLDER || './tmp']
-      ],
-      open: true,
-      wait: 0,
-      logLevel: 2
-    };
-
-    // Start monkey-patched live-server.
-    // We remove the listeners so it doesn't watch any files.
-    // And add a "change" helper so we can manually run the change listener. 
-    liveServer.start(params);
-    liveServer.change = liveServer.watcher.listeners('change')[0];
-    liveServer.watcher.removeAllListeners();
-    resolve();
-  });
-}
-
-// Set up style compiler
-styles.configure(
-  options.stylesEntry,
-  options.stylesPaths,
-  options.stylesDest
-);
-
-// Set up ts transpiler
-transpiler.configure(
-  options.scriptsGlob,
-  options.transpilerOptions
-);
-
-// Set up webpack bundler
-bundler.configure(
-  options.scriptsEntry,
-  options.scriptsDest,
-  false,
-  options.modeTasks.bundleMap
-);
-
-
-// BUILD AND START WATCHING
-// ...
-
-// Run build first
-assets.copy()
-  .then(() => styles.compile())
-  .then(() => transpiler.transpileAll())
-  .then(() => bundler.bundle())
-  .then(() => startLiveServer())
-  .then(() => {
-
-    // Watcher for all style source files
-    const styleWatch = chokidar.watch(options.stylesGlob, {
-      persistent: true,
-      ignoreInitial: true
-    }).on('all', (event, fileName) => {
-
-      // Ignore files
-      if (exclude(fileName)) { return; }
-
-      // Run update or queue it up
-      if (stylesPending > 0 && stylesPending < 2) {
-        stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
-        stylesPending++;
-      } else if (stylesPending <= 0) {
-        stylesPromise = updateStyles(event, fileName);
-        stylesPending = 1;
-      }
-    });
-
-    // Watcher for all .ts and .tsx files
-    const scriptWatch = chokidar.watch(options.scriptsGlob, { 
-      persistent: true,
-      ignoreInitial: true
-    }).on('all', (event, fileName) => {
-
-      // Ignore files
-      if (exclude(fileName)) { return; }
-
-      // Run update or queue it up 
-      if (scriptsPending > 0 && scriptsPending < 2) {
-        scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
-        scriptsPending++;
-      } else if (scriptsPending <= 0) {
-        scriptsPromise = updateScripts(event, fileName);
-        scriptsPending = 1;
-      }
-    });
-
-  });
+module.exports = start;

@@ -2,6 +2,7 @@
   "name": "@density/build-js",
   "version": "0.2.6",
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
+  "main": "index.js",
   "bin": {
     "react-scripts": "./bin/react-scripts.js"
   },

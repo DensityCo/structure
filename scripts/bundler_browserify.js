@@ -5,58 +5,58 @@ const browserify = require('browserify');
 const watchify = require('watchify');
 const sourcemaps = require('./sourcemaps');
 
-let _main = null;
-let _bundle = null;
-let _production = null;
-let _maps = null;
-let _b = null;
-
-function configure(main, bundle, production = false, maps = false) {
-  _main = main;
-  _bundle = bundle;
-  _production = production;
-  _maps = maps;
-  _b = browserify(_main, {
+function bundler(inFile, outFile, options) {
+  const _inFile = inFile;
+  const _outFile = outFile;
+  const _options = options || {};
+  const _b = browserify(_inFile, {
     cache: {},
     packageCache: {},
-    paths: ['./node_modules/'],
-    debug: _maps
+    paths: _options.paths || ['./node_modules/'],
+    debug: _options.sourceMap
   });
   _b.plugin(watchify);
-}
 
-// Re-bundle helper method
-function bundle(dest = path.dirname(_bundle)) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
-      _b.bundle((err, buf) => {
-        if (err) {
-          console.log(chalk.red('Bundle error!'));
-          reject();
-        } else {
-          fs.writeFileSync(_bundle, buf.toString());
-          if (!_production && _maps) {
-            fs.writeFileSync(`${_bundle}.map.orig`, fs.readFileSync(`${_bundle}.map`));
-            sourcemaps.flatten(_bundle, url => {
-              if ( url.indexOf('app.js') < 0 && url.indexOf('node_modules') < 0 ) {
-                return url.replace('dist/', '');
+
+  // Common Bundler API
+  return {
+
+    name: 'Browserify Bundler',
+    inFile: _inFile,
+    outFile: _outFile,
+    options: _options,
+
+    bundle: function () {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const dest = path.dirname(_outFile);
+          if (!fs.existsSync(dest)) { fs.mkdirSync(dest); }
+          _b.bundle((err, buf) => {
+            if (err) {
+              console.log(chalk.red('Bundle error!'));
+              reject();
+            } else {
+              fs.writeFileSync(_outFile, buf.toString());
+              if (!_options.production && _options.sourceMap) {
+                fs.writeFileSync(`${_outFile}.map.orig`, fs.readFileSync(`${_outFile}.map`));
+                sourcemaps.flatten(_outFile, url => {
+                  if ( url.indexOf('app.js') < 0 && url.indexOf('node_modules') < 0 ) {
+                    return url.replace('dist/', '');
+                  }
+                }).then(() => {     
+                  console.log(chalk.gray('Bundle ready!'));
+                  resolve();
+                });
+              } else {
+                console.log(chalk.gray('Bundle ready!'));
+                resolve();
               }
-            }).then(() => {     
-              console.log(chalk.gray('Bundle ready!'));
-              resolve();
-            });
-          } else {
-            console.log(chalk.gray('Bundle ready!'));
-            resolve();
-          }
-        }
+            }
+          });
+        }, 100);
       });
-    }, 100);
-  });
+    }
+  }
 }
 
-module.exports = {
-  configure: configure,
-  bundle: bundle
-}
+module.exports = bundler;

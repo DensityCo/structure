@@ -8,7 +8,7 @@ const assets = structure.assets(
   './src/index.html',
   './dist/index.html',
   './src/assets',
-  './dist/assets',
+  './dist/assets'
 );
 
 // Set up styles

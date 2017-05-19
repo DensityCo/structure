@@ -13,6 +13,157 @@ and a css post-processor ([sass](https://sass-lang.com)).
 ## Why not use Webpack to do all of this?
 *PLACEHOLDER*
 
+## Example
+```javascript
+const structure = require('@density/structure');
+
+// Compile sass to css
+const sass = structure.sass('main.scss', 'dist/app.css');
+
+// Transpile all typescript files to their javascript equivilents.
+const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
+
+// Bundle all typescript with webpack
+const webpack = structure.webpack('transpiled/**/*.js', 'dist/app.js');
+
+// Start the dev server
+structure.start({
+  assets: assets,
+  styles: styles,
+  transpiler: typescript,
+  bundler: webpack,
+});
+```
+
+Then, when the script is run, you have a simple live-reloading development server:
+```sh
+$ node structure.js
+* Assets ready!
+* Styles ready!
+* Full transpile done!
+* Bundle ready!
+* Serving "./dist" at http://127.0.0.1:8080
+```
+
+
+
+
+
+
+
+
+Note: maybe some of the below should go into a CONTRIBUTING.md?
+
+# Interfaces
+
+## Transpilers
+Transpilers take three arguments, a source glob of the files to transpile, a folder to store the
+transpiled output within, and a bunch of options (optional).
+
+They each return a collection of utilities:
+- `transpile` is a function that, when given a filename, transpiles the single file.
+- `transpileAll` is a function that transpiles all files that match a given source glob.
+
+We support Typescript and Babel out of the box:
+```javascript
+// Babel
+// Transpile from src/*.js => transpiled/*.js
+const babel = structure.babel('src/*.js', 'transpiled/', {
+  presets: ['es2015'],
+});
+
+// Usage:
+babel.transpile('src/foo.js')
+babel.transpileAll()
+
+
+
+// Typescript
+// Transpile from src/*.js => transpiled/*.js
+const typescript = structure.typescript('src/*.ts', 'transpiled/', {
+  sourceMap: true,
+});
+
+// Usage:
+typescript.transpile('src/foo.ts')
+typescript.transpileAll()
+```
+
+## Bundlers
+Bundlers take three arguments, a path to the entry point of a module tree, a bundle output path, and
+a collection of options:
+- `sourceMap`: a boolean indicating whether to build a sourcemap for the bundle or not.
+- `production`: should the bundle be production optimized?
+
+They each return a single utility:
+- `bundle` is a function that, when called, performs the given bundling operation.
+
+```javascript
+// Bundle *.js => bundle.js with webpack
+const webpack = structure.webpack('*.js', 'bundle.js', {
+  sourceMap: true,
+});
+
+// Usage:
+webpack.bundle()
+
+
+
+// Bundle *.js => bundle.js with browserify
+const browserify = structure.browserify('*.js', 'bundle.js', {
+  sourceMap: true,
+});
+
+// Usage:
+browserify.bundle()
+```
+
+## Styles
+Structure also supports the notion of a stylesheet postprocessor. Stylesheet postprocessors take
+three options, a path to the entry point of a stylesheet tree, a stylesheet output path, and
+a collection of options:
+- `paths`: a list of paths to include when resolving styles. If using a tool like
+  [nicss](https://github.com/densityco/nicss), add `./styles` to automatically resolve stylesheets
+  from packages.
+
+They each return a single utility:
+- `compile` is a function that, when called, performs the given css post-processing operation.
+
+```javascript
+// Bundle *.scss => main.css with sass
+const sass = structure.sass('*.scss', 'main.css', {
+  paths: ['./style'], // Use nicss! https://github.com/densityco/nicss
+});
+
+// Usage:
+sass.compile()
+```
+
+## Assets
+Finally, structure supports a asset transform / copy as an additional compile step. By default,
+structure's `assets` step does a number of basic things:
+- Copies a user-defined `index.html` into the output folder.
+- Copies an assets folder into the output folder.
+
+Assets transforms take a few options:
+- A path to an index.html file
+- A path to copy the index.html into
+- A path to a collection of assets
+- A path to copy the collection of assets into
+
+```javascript
+const assets = structure.assets(
+  './src/index.html',
+  './dist/index.html',
+  './src/assets',
+  './dist/assets'
+);
+
+assets.copy();
+```
+
+
+
 ## A NodeJS transpiler/bundler Build System 
 
 This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.

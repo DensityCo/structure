@@ -22,7 +22,16 @@ and a css post-processor ([sass](https://sass-lang.com)).
 2. Create a build script. Here's an example:
 ```javascript
 // structure.js
+
 const structure = require('@density/structure');
+
+// Copy assets
+const assets = structure.assets(
+  'index.html',
+  'dist/index.html',
+  'assets/',
+  'dist/assets/'
+);
 
 // Compile sass to css
 const sass = structure.sass('main.scss', 'dist/app.css');
@@ -31,12 +40,12 @@ const sass = structure.sass('main.scss', 'dist/app.css');
 const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
 
 // Bundle all typescript with webpack
-const webpack = structure.webpack('transpiled/**/*.js', 'dist/app.js');
+const webpack = structure.webpack('transpiled/main.js', 'dist/app.js');
 
 // Start the dev server
 structure.start({
   assets: assets,
-  styles: styles,
+  styles: sass,
   transpiler: typescript,
   bundler: webpack,
 });
@@ -44,6 +53,22 @@ structure.start({
 
 3. Run the script to get a live-reloading dev server: `node structure.js`
 ```sh
+$ # Set up a tiny project
+$ mkdir assets/
+$ mkdir src/ && echo "console.log('Hello');" > src/main.ts
+$ echo "body { color: red; }" > main.scss
+$ cat <<EOF > index.html
+<html>
+  <head>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <script src="/app.js"></script>
+  </body>
+</html>
+EOF
+$ # Build the project
 $ node structure.js
 * Assets ready!
 * Styles ready!

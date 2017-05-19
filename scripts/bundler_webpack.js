@@ -35,28 +35,27 @@ function bundler(inFile, outFile, options) {
 
   // Common Bundler API
   return {
-
     name: 'Webpack Bundler',
     inFile: _inFile,
     outFile: _outFile,
     options: _options,
 
-    bundle: function () {
+    bundle: function() {
+      const dest = path.dirname(_outFile);
       return fs.existsP(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
-        if (exists) {
+        if (!exists) {
           return fs.mkdirP(dest);
         }
       }).then(() => { // Bundle with Browserify
         return new Promise((resolve, reject) => {
           _compiler.run((err, stats) => {
+            if (err) {
               reject(err);
             } else {
               resolve(stats);
             }
           });
         });
-      }).catch(err => { // Handle bundling errors
-        console.error(chalk.red(`Error bundling: ${err}`));
       }).then(stats => { // Bundle with Browserify
         if (!_options.production && _options.sourceMap) { 
           return fs.readFileP(`${outFile}.map`).then(mapContent => {
@@ -88,9 +87,11 @@ function bundler(inFile, outFile, options) {
         }
       }).then(() => {
         console.log(chalk.gray('Bundle ready!'));
+      }).catch(err => {
+        console.error(chalk.red(`Error bundling: ${err}`));
       });
-    }
-  }
+    },
+  };
 }
 
 module.exports = bundler;

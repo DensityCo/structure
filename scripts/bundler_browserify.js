@@ -62,7 +62,7 @@ function bundler(inFile, outFile, options) {
         console.log(chalk.gray('Bundle ready!'));
       });
     },
-  },
+  };
 }
 
 module.exports = bundler;

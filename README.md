@@ -45,6 +45,8 @@ $ node structure.js
 * Serving "./dist" at http://127.0.0.1:8080
 ```
 
+## Internals
+There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
 

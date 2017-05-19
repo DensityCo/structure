@@ -12,11 +12,16 @@ and a css post-processor ([sass](https://sass-lang.com)).
 
 ## Why not use Webpack to do all of this?
 - **Flexibility.** Configuring Webpack to support a custom stack can be clunky and complex.
-- **Transparency.** When you buy into the "webpack way", you end up using tons of plugins that are really opaque. Because you don't really know what transforms your code goes through, it's hard to "trim the fat" easily.
+- **Transparency.** When you buy into the "webpack way", you end up using tons of plugins that are
+  really opaque. Because you don't really know what transforms your code goes through, it's hard to
+  optimise your bundle easily.
 - **Troubleshootability.** Due to the above, it's difficult to develop and troubleshoot the development server.
 
-## Example
+## Getting Started
+1. Install structure (`npm i -S @density/structure`)
+2. Create a build script. Here's an example:
 ```javascript
+// structure.js
 const structure = require('@density/structure');
 
 // Compile sass to css
@@ -37,7 +42,7 @@ structure.start({
 });
 ```
 
-Then, when the script is run, you have a simple live-reloading development server:
+3. Run the script to get a live-reloading dev server: `node structure.js`
 ```sh
 $ node structure.js
 * Assets ready!
@@ -46,6 +51,8 @@ $ node structure.js
 * Bundle ready!
 * Serving "./dist" at http://127.0.0.1:8080
 ```
+
+4. *BONUS: add a `start` script in your package.json file that runs the build script: `"start": "node structure.js"`*
 
 ## Transpiler/bundler Build System
 Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.

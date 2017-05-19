@@ -4,14 +4,16 @@
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-Structure is a modular build system for frontend projects. It's built to be modular and to supress
-lock in to any one technology - we're looking at you, Webpack. There is out of the box support for a
+Structure is a modular build system for frontend projects. It's built to be flexible, transparent, and to supress
+lock-in to any one technology (we're looking at you, Webpack). There is out of the box support for a
 number of transpilers ([typescript](https://www.typescriptlang.org/), [babel](https://babeljs.io)),
 a number of bundlers ([webpack](https://webpack.github.io/), [browserify](http://browserify.org/)),
 and a css post-processor ([sass](https://sass-lang.com)).
 
 ## Why not use Webpack to do all of this?
-*PLACEHOLDER*
+- **Flexibility.** Configuring Webpack to support a custom stack can be clunky and complex.
+- **Transparency.** When you buy into the "webpack way", you end up using tons of plugins that are really opaque. Because you don't really know what transforms your code goes through, it's hard to "trim the fat" easily.
+- **Troubleshootability.** Due to the above, it's difficult to develop and troubleshoot the development server.
 
 ## Example
 ```javascript
@@ -45,16 +47,7 @@ $ node structure.js
 * Serving "./dist" at http://127.0.0.1:8080
 ```
 
-
-
-
-
-
-
-
-Note: maybe some of the below should go into a CONTRIBUTING.md?
-
-## A NodeJS transpiler/bundler Build System 
+## Transpiler/bundler Build System
 
 This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
 
@@ -70,7 +63,7 @@ This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs. 
+`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs.
 
 The TypeScript is transpiled for file changes immediately, before the full program is checked. This is because I haven't figured out if it is possible or easy to update the representation that typescript works with internally, and checking the whole program again takes a few seconds.
 

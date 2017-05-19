@@ -48,8 +48,7 @@ $ node structure.js
 ```
 
 ## Transpiler/bundler Build System
-
-This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
+Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
 
 ## NodeJS Scripts
 
@@ -115,3 +114,6 @@ Both of these helpers have the same API:
 Assets are copied with file system calls. This helper has the following API:
 
 - `.copy(paths?, index?, dest?)`: Calling this will copy over assets from the `paths` array to `dest/assets`. If `index` is null, the helper writes a hard-coded ReactJS page to `dest/index.html`.
+
+# Internals
+There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).

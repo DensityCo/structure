@@ -2,7 +2,6 @@ const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
-const sorcery = require('sorcery');
 const utilities = require('./utilities');
 
 

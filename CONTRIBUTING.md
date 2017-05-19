@@ -81,7 +81,7 @@ They each return a single utility:
 ```javascript
 // Bundle *.scss => main.css with sass
 const sass = structure.sass('*.scss', 'main.css', {
-  paths: ['./style'], // Use nicss! https://github.com/densityco/nicss
+  paths: ['./styles'], // Use nicss! https://github.com/densityco/nicss
 });
 
 // Usage:

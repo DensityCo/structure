@@ -4,22 +4,19 @@ const glob = require('glob');
 const ts = require('typescript');
 const utilities = require('./utilities');
 
-let _host = null;
-let _service = null;
-let _program = null;
-let _metadata = null;
-let _sourceGlob = null;
-let _options = null;
+// Configuration returns new transpiler instance
+function transpiler(inGlob, outPath, options) {
+  const _inGlob = inGlob;
+  const _outPath = outPath;
+  const _options = options || {};
+  const _metadata = {};
 
-// Helper to set up the language service
-function configure(sourceGlob, options) {
-  _sourceGlob = sourceGlob;
-  _options = options;
-  _metadata = {};
+  // Set outDir on TypeScript options if not set
+  _options.outDir = _options.outDir || _outPath;
 
   // Create the language service host to allow the LS to communicate with the host
-  _host = {
-    getScriptFileNames: () => { return glob.sync(_sourceGlob); },
+  const _host = {
+    getScriptFileNames: () => { return glob.sync(_inGlob); },
     getScriptVersion: (name) => _metadata[name] && _metadata[name].version.toString(),
     getScriptSnapshot: (name) => {
       if (!fs.existsSync(name)) { return undefined; }
@@ -31,88 +28,82 @@ function configure(sourceGlob, options) {
   };
 
   // Create the language service
-  _service = ts.createLanguageService(_host, ts.createDocumentRegistry());
-}
+  const _service = ts.createLanguageService(_host, ts.createDocumentRegistry());
 
-// Helper to do a (fast) transpile of a single file
-function transpile(name) {
-  return new Promise((resolve, reject) => {
 
-    // Abort if language service isn't configured yet
-    if (!_service) { 
-      console.log(chalk.red('Run `configure` before running `transpile`!'));
-      reject();
-    } else {
+  // Common Transpiler API
+  return {
 
-      // TODO: handle weird filename formats better
-      if (name.startsWith('src')) { name = './' + name; }
+    name: 'TypeScript Transpiler',
+    inGlob: _inGlob,
+    outPath: _outPath,
+    options: _options,
 
-      // Bump the file version
-      if (_metadata[name]) {
-        _metadata[name].version++;
-      } else {
-        _metadata[name] = { version: 0 };
-      }
+    transpile: function (name) {
+      return new Promise((resolve, reject) => {
 
-      // Emit the output
-      const output = _service.getEmitOutput(name);
-      if (output.emitSkipped) {
-        console.log(chalk.red(`Transpile ${name} skipped!`));
-        reject();
-      } else {
+        // TODO: handle weird filename formats better
+        if (name.startsWith('src')) { name = './' + name; }
 
-        // Write output files to disk
-        output.outputFiles.forEach(o => {
-          utilities.ensureDirectoryExistence(o.name);
-          fs.writeFileSync(o.name, o.text, "utf8");
+        // Bump the file version
+        if (_metadata[name]) {
+          _metadata[name].version++;
+        } else {
+          _metadata[name] = { version: 0 };
+        }
+
+        // Emit the output
+        const output = _service.getEmitOutput(name);
+        if (output.emitSkipped) {
+          console.log(chalk.red(`Transpile ${name} skipped!`));
+          reject();
+        } else {
+
+          // Write output files to disk
+          output.outputFiles.forEach(o => {
+            utilities.ensureDirectoryExistence(o.name);
+            fs.writeFileSync(o.name, o.text, "utf8");
+          });
+          console.log(chalk.gray(`Transpile ${name} done!`));
+          resolve();
+        }
+      });
+    },
+
+    // Helper to do a (slow) full transpile with error reporting
+    transpileAll: function () {
+      return new Promise((resolve, reject) => {
+
+        // Make a new program with the latest sourceFiles
+        const sourceFiles = glob.sync(_inGlob);
+        const program = ts.createProgram(sourceFiles, _options);
+
+        // Emit and get diagnostics
+        const emitResult = program.emit();
+        const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+
+        // Log out all diagnostics
+        allDiagnostics.forEach(diagnostic => {
+          const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+          if (!diagnostic.file) {
+            console.log(chalk.yellow(`Transpile Error: ${message}`));
+          } else {
+            const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+            console.log(chalk.yellow(`Transpile Error: ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`));
+          }
         });
-        console.log(chalk.gray(`Transpile ${name} done!`));
-        resolve();
-      }
+
+        // Log out skipped or complete message
+        if (emitResult.emitSkipped) {
+          console.log(chalk.red('Full transpile skipped!'));
+          reject();
+        } else {
+          console.log(chalk.gray('Full transpile done!'));
+          resolve(emitResult);
+        }
+      });
     }
-  });
+  }
 }
 
-// Helper to do a (slow) full transpile with error reporting
-function transpileAll(sourceGlob = _sourceGlob, options = _options) {
-  return new Promise((resolve, reject) => {
-    // Make a new program with the latest sourceFiles
-    const sourceFiles = glob.sync(sourceGlob);
-    _program = ts.createProgram(sourceFiles, options);
-
-    // Emit and get diagnostics
-    const emitResult = _program.emit();
-    const allDiagnostics = ts.getPreEmitDiagnostics(_program).concat(emitResult.diagnostics);
-
-    // Log out all diagnostics
-    allDiagnostics.forEach(diagnostic => {
-      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-      if (!diagnostic.file) {
-        console.log(chalk.yellow(`Transpile Error: ${message}`));
-      } else {
-        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-        console.log(chalk.yellow(`Transpile Error: ${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`));
-      }
-    });
-
-    // Log out skipped or complete message
-    if (emitResult.emitSkipped) {
-      console.log(chalk.red('Full transpile skipped!'));
-      reject();
-    } else {
-      console.log(chalk.gray('Full transpile done!'));
-      resolve(emitResult);
-    }
-  });
-}
-
-// Public API
-module.exports = {
-  sourceGlob: _sourceGlob,
-  options: _options,
-  service: _service,
-  program: _program,
-  configure: configure,
-  transpile: transpile,
-  transpileAll: transpileAll
-};
+module.exports = transpiler;

@@ -3,37 +3,30 @@ const fs = require('fs');
 const path = require('path');
 const utilities = require('./utilities');
 
-function copy(
-  paths = ['./src/assets'],
-  index = null,
-  dest = './dist'
-) {
-  return new Promise((resolve, reject) => {
-    const indexPath = `${dest}/index.html`;
-    utilities.ensureDirectoryExistence(indexPath);
-    if (typeof(index) === String) { index = fs.readFileSync(index); }
-    fs.writeFileSync(indexPath, index || `<!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <title>App</title>
-      <meta name="description" content="">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-      <link rel="stylesheet" href="/app.css">
-    </head>
-    <body>
-      <div id="react-mount"></div>
-      <script src="/app.js"></script>
-    </body>
-  </html>`);
+function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
+  const _indexInFile = indexInFile;
+  const _indexOutFile = indexOutFile;
+  const _assetsInPath = assetsInPath;
+  const _assetsOutPath = assetsOutPath;
 
-    paths.forEach((path) => utilities.copyRecursiveSync(path, `${dest}/assets`));
-    console.log(chalk.gray('Assets ready!'));
-    resolve();
-  });
+  return {
+
+    name: 'Assets Copier',
+    indexInFile: _indexInFile,
+    indexOutFile: _indexOutFile,
+    assetsInPath: _assetsInPath,
+    assetsOutPath: _assetsOutPath,
+
+    copy: function () {
+      return new Promise((resolve, reject) => {
+        utilities.copyRecursiveSync(_assetsInPath, _assetsOutPath);
+        utilities.ensureDirectoryExistence(_indexOutFile);
+        fs.writeFileSync(_indexOutFile, fs.readFileSync(_indexInFile));
+        console.log(chalk.gray('Assets ready!'));
+        resolve();
+      });
+    }
+  };
 }
 
-module.exports = {
-  copy: copy
-};
+module.exports = assets;

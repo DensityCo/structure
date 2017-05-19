@@ -13,6 +13,47 @@ and a css post-processor ([sass](https://sass-lang.com)).
 ## Why not use Webpack to do all of this?
 *PLACEHOLDER*
 
+## Example
+```javascript
+const structure = require('@density/structure');
+
+// Compile sass to css
+const sass = structure.sass('main.scss', 'dist/app.css');
+
+// Transpile all typescript files to their javascript equivilents.
+const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
+
+// Bundle all typescript with webpack
+const webpack = structure.webpack('transpiled/**/*.js', 'dist/app.js');
+
+// Start the dev server
+structure.start({
+  assets: assets,
+  styles: styles,
+  transpiler: typescript,
+  bundler: webpack,
+});
+```
+
+Then, when the script is run, you have a simple live-reloading development server:
+```sh
+$ node structure.js
+* Assets ready!
+* Styles ready!
+* Full transpile done!
+* Bundle ready!
+* Serving "./dist" at http://127.0.0.1:8080
+```
+
+
+
+
+
+
+
+
+Note: maybe some of the below should go into a CONTRIBUTING.md?
+
 ## A NodeJS transpiler/bundler Build System 
 
 This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.

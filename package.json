@@ -4,7 +4,7 @@
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
   "main": "index.js",
   "scripts": {
-    "postinstall": "cp ./template/structure.js ../../../structure.js"
+    "postinstall": "[ ! -f ../../../structure.js ] && cp ./template/structure.js ../../../structure.js"
   },
   "bin": {
     "react-scripts": "./bin/react-scripts.js"

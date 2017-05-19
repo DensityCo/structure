@@ -42,37 +42,30 @@ function transpiler(inGlob, outPath, options) {
     transpile: function (name) {
       return new Promise((resolve, reject) => {
 
-        // Abort if language service isn't configured yet
-        if (!_service) { 
-          console.log(chalk.red('Run `configure` before running `transpile`!'));
+        // TODO: handle weird filename formats better
+        if (name.startsWith('src')) { name = './' + name; }
+
+        // Bump the file version
+        if (_metadata[name]) {
+          _metadata[name].version++;
+        } else {
+          _metadata[name] = { version: 0 };
+        }
+
+        // Emit the output
+        const output = _service.getEmitOutput(name);
+        if (output.emitSkipped) {
+          console.log(chalk.red(`Transpile ${name} skipped!`));
           reject();
         } else {
 
-          // TODO: handle weird filename formats better
-          if (name.startsWith('src')) { name = './' + name; }
-
-          // Bump the file version
-          if (_metadata[name]) {
-            _metadata[name].version++;
-          } else {
-            _metadata[name] = { version: 0 };
-          }
-
-          // Emit the output
-          const output = _service.getEmitOutput(name);
-          if (output.emitSkipped) {
-            console.log(chalk.red(`Transpile ${name} skipped!`));
-            reject();
-          } else {
-
-            // Write output files to disk
-            output.outputFiles.forEach(o => {
-              utilities.ensureDirectoryExistence(o.name);
-              fs.writeFileSync(o.name, o.text, "utf8");
-            });
-            console.log(chalk.gray(`Transpile ${name} done!`));
-            resolve();
-          }
+          // Write output files to disk
+          output.outputFiles.forEach(o => {
+            utilities.ensureDirectoryExistence(o.name);
+            fs.writeFileSync(o.name, o.text, "utf8");
+          });
+          console.log(chalk.gray(`Transpile ${name} done!`));
+          resolve();
         }
       });
     },
@@ -80,6 +73,7 @@ function transpiler(inGlob, outPath, options) {
     // Helper to do a (slow) full transpile with error reporting
     transpileAll: function () {
       return new Promise((resolve, reject) => {
+
         // Make a new program with the latest sourceFiles
         const sourceFiles = glob.sync(_inGlob);
         const program = ts.createProgram(sourceFiles, _options);

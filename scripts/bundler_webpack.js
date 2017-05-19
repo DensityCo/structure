@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const sorcery = require('sorcery');
-const sourcemaps = require('./sourcemaps');
+const utilities = require('./utilities');
 
 
 function bundler(inFile, outFile, options) {
@@ -53,7 +53,7 @@ function bundler(inFile, outFile, options) {
           } else {
             if (!_options.production && _options.sourceMap) { 
               fs.writeFileSync(`${_outFile}.map.orig`, fs.readFileSync(`${_outFile}.map`));
-              sourcemaps.flatten(_outFile, url => {
+              utilities.flattenSourceMap(_outFile, url => {
                 
                 // Fix various webpack stuff
                 url = url.replace('/~/', '/node_modules/');

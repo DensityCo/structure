@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const browserify = require('browserify');
 const watchify = require('watchify');
-const sourcemaps = require('./sourcemaps');
+const utilities = require('./utilities');
 
 function bundler(inFile, outFile, options) {
   const _inFile = inFile;
@@ -12,6 +12,7 @@ function bundler(inFile, outFile, options) {
   const _b = browserify(_inFile, {
     cache: {},
     packageCache: {},
+    sourceType: 'module',
     paths: _options.paths || ['./node_modules/'],
     debug: _options.sourceMap
   });
@@ -39,7 +40,7 @@ function bundler(inFile, outFile, options) {
               fs.writeFileSync(_outFile, buf.toString());
               if (!_options.production && _options.sourceMap) {
                 fs.writeFileSync(`${_outFile}.map.orig`, fs.readFileSync(`${_outFile}.map`));
-                sourcemaps.flatten(_outFile, url => {
+                utilities.flattenSourceMap(_outFile, url => {
                   if ( url.indexOf('app.js') < 0 && url.indexOf('node_modules') < 0 ) {
                     return url.replace('dist/', '');
                   }

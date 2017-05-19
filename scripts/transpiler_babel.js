@@ -23,10 +23,6 @@ function transpiler(inGlob, outPath, options) {
     // Helper to do a (fast) transpile of a single file
     transpile: function (name) {
       return new Promise((resolve, reject) => {
-        if (!_options) { 
-          console.log(chalk.red('Run `configure` before running `transpile`!'));
-          return null;
-        }
         const dest = _outPath + path.basename(name).replace(/\.ts$/, '.js');
         babel.transformFile(name, _options, (err, result) => {
           if (err) { 
@@ -42,13 +38,13 @@ function transpiler(inGlob, outPath, options) {
       });
     },
 
-    // Helper to do a (slow) full transpile with error reporting
+    // Helper to do a (slow) full transpile
     transpileAll: function () {
-
-      // Make a new program with the latest source files
-      return Promise.all(glob.sync(_inGlob).map(file => transpile(file))).then(results => {
-        console.log(chalk.gray('Full transpile done!'));
-      });
+      return Promise.all(glob.sync(_inGlob)
+        .map(file => transpile(file)))
+        .then(results => {
+          console.log(chalk.gray('Full transpile done!'));
+        });
     }
   }
 }

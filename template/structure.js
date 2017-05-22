@@ -3,7 +3,7 @@
 // `node index.js build`
 
 // Structure dependency
-const structure = require('@density/build-js');
+const structure = require('@density/structure');
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(
@@ -19,9 +19,13 @@ const styles = structure.sass(
   './dist/app.css',
   {
     paths: [
+      // TODO: remove these density-ui specific paths
       './node_modules/bourbon/app/assets/stylesheets',
       './node_modules/node-reset-scss/scss',
       './node_modules/density-ui/lib',
+
+      // for nicss
+      './styles',
     ]
   }
 );

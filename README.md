@@ -1,6 +1,6 @@
 # Structure
 
-[![Dependency Status](https://david-dm.org/density/structure.svg)](https://david-dm.org/density/structure)
+[![Dependency Status](https://david-dm.org/densityco/structure.svg)](https://david-dm.org/densityco/structure)
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 

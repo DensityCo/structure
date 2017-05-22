@@ -32,6 +32,13 @@ module.exports = function(
     JSON.stringify(appPackage, null, 2)
   );
 
+  // Copy structure template into the project
+  const templateReadStream = fs.createReadStream(path.resolve(__dirname, path.join('..', 'template', 'structure.js')))
+  const templateWriteStream = fs.createWriteStream(path.resolve(__dirname, path.join('..', '..', '..', '..', 'structure.js')))
+  templateReadStream.on('error', err => console.log("Template copy read stream error:", err))
+  templateWriteStream.on('error', err => console.log("Template copy write stream error:", err))
+  templateReadStream.pipe(templateWriteStream);
+
   // Copy template files
   console.log(chalk.gray('Copy template...'));
   var templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');

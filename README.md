@@ -4,18 +4,34 @@
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-Structure is a modular build system for frontend projects. It's built to be modular and to supress
-lock in to any one technology - we're looking at you, Webpack. There is out of the box support for a
+Structure is a modular build system for frontend projects. It's built to be flexible, transparent, and to supress
+lock-in to any one technology (we're looking at you, Webpack). There is out of the box support for a
 number of transpilers ([typescript](https://www.typescriptlang.org/), [babel](https://babeljs.io)),
 a number of bundlers ([webpack](https://webpack.github.io/), [browserify](http://browserify.org/)),
 and a css post-processor ([sass](https://sass-lang.com)).
 
 ## Why not use Webpack to do all of this?
-*PLACEHOLDER*
+- **Flexibility.** Configuring Webpack to support a custom stack can be clunky and complex.
+- **Transparency.** When you buy into the "webpack way", you end up using tons of plugins that are
+  really opaque. Because you don't really know what transforms your code goes through, it's hard to
+  optimise your bundle easily.
+- **Troubleshootability.** Due to the above, it's difficult to develop and troubleshoot the development server.
 
-## Example
+## Getting Started
+1. Install structure (`npm i -S @density/structure`)
+2. Create a build script. Here's an example:
 ```javascript
+// structure.js
+
 const structure = require('@density/structure');
+
+// Copy assets
+const assets = structure.assets(
+  'index.html',
+  'dist/index.html',
+  'assets/',
+  'dist/assets/'
+);
 
 // Compile sass to css
 const sass = structure.sass('main.scss', 'dist/app.css');
@@ -24,19 +40,35 @@ const sass = structure.sass('main.scss', 'dist/app.css');
 const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
 
 // Bundle all typescript with webpack
-const webpack = structure.webpack('transpiled/**/*.js', 'dist/app.js');
+const webpack = structure.webpack('transpiled/main.js', 'dist/app.js');
 
 // Start the dev server
 structure.start({
   assets: assets,
-  styles: styles,
+  styles: sass,
   transpiler: typescript,
   bundler: webpack,
 });
 ```
 
-Then, when the script is run, you have a simple live-reloading development server:
+3. Run the script to get a live-reloading dev server: `node structure.js`
 ```sh
+$ # Set up a tiny project
+$ mkdir assets/
+$ mkdir src/ && echo "console.log('Hello');" > src/main.ts
+$ echo "body { color: red; }" > main.scss
+$ cat <<EOF > index.html
+<html>
+  <head>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <script src="/app.js"></script>
+  </body>
+</html>
+EOF
+$ # Build the project
 $ node structure.js
 * Assets ready!
 * Styles ready!
@@ -45,20 +77,10 @@ $ node structure.js
 * Serving "./dist" at http://127.0.0.1:8080
 ```
 
-## Internals
-There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).
+4. *BONUS: add a `start` script in your package.json file that runs the build script: `"start": "node structure.js"`*
 
-
-
-
-
-
-
-Note: maybe some of the below should go into a CONTRIBUTING.md?
-
-## A NodeJS transpiler/bundler Build System 
-
-This build tool has scripts in this folder to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
+## Transpiler/bundler Build System
+Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
 
 ## NodeJS Scripts
 
@@ -72,7 +94,7 @@ This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs. 
+`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs.
 
 The TypeScript is transpiled for file changes immediately, before the full program is checked. This is because I haven't figured out if it is possible or easy to update the representation that typescript works with internally, and checking the whole program again takes a few seconds.
 
@@ -124,3 +146,6 @@ Both of these helpers have the same API:
 Assets are copied with file system calls. This helper has the following API:
 
 - `.copy(paths?, index?, dest?)`: Calling this will copy over assets from the `paths` array to `dest/assets`. If `index` is null, the helper writes a hard-coded ReactJS page to `dest/index.html`.
+
+# Internals
+There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).

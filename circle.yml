@@ -1,6 +1,6 @@
 dependencies:
   pre:
-    - echo "//npmregistry.density.rodeo/:_authToken=${PRIVATE_NPM_TOKEN}" >> ~/.npmrc
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
 
 test:
   override:

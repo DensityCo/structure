@@ -19,9 +19,12 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
 
     copy: function () {
       return new Promise((resolve, reject) => {
-        utilities.copyRecursiveSync(_assetsInPath, _assetsOutPath);
         utilities.ensureDirectoryExistence(_indexOutFile);
         fs.writeFileSync(_indexOutFile, fs.readFileSync(_indexInFile));
+
+        utilities.ensureDirectoryExistence(`${_assetsOutPath}/file.txt`);
+        utilities.copyRecursiveSync(_assetsInPath, _assetsOutPath);
+
         console.log(chalk.gray('Assets ready!'));
         resolve();
       });

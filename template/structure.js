@@ -3,7 +3,7 @@
 // `node index.js build`
 
 // Structure dependency
-const structure = require('@density/build-js');
+const structure = require('@density/structure');
 
 // Set up assets copyier thingamajig
 const assets = structure.assets(

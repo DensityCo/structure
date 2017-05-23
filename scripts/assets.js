@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const utilities = require('./utilities');
 
@@ -20,9 +20,9 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
       return utilities.copyRecursive(_assetsInPath, _assetsOutPath).then(() => {
         return utilities.ensureDirectoryExistence(_indexOutFile);
       }).then(() => {
-        return fs.readFileP(_indexInFile);
+        return fs.readFile(_indexInFile);
       }).then(contents => {
-        return fs.writeFileP(_indexOutFile, contents.toString());
+        return fs.writeFile(_indexOutFile, contents.toString());
       }).then(() => {
         console.log(chalk.gray('Assets ready!'));
       });

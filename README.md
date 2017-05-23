@@ -66,9 +66,10 @@ structure.start({
 ```sh
 $ # Set up a tiny project
 $ mkdir assets/
-$ mkdir src/ && echo "console.log('Hello');" > src/main.ts
-$ echo "body { color: red; }" > main.scss
-$ cat <<EOF > index.html
+$ mkdir src/ 
+$ echo "console.log('Hello');" > src/main.ts
+$ echo "body { color: red; }" > src/main.scss
+$ cat <<EOF > src/index.html
 <html>
   <head>
     <link rel="stylesheet" href="/app.css" />

@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fsp');
 const path = require('path');
 const sorcery = require('sorcery');
 
@@ -35,20 +35,42 @@ function flattenSourceMap(bundle, urlMiddleware = null) {
  * @param {string} src The path to the thing to copy.
  * @param {string} dest The path to the new copy.
  */
-function copyRecursiveSync(src, dest) {
-  var exists = fs.existsSync(src);
-  if (exists) {
-    var stats = fs.statSync(src);
-    if (stats.isDirectory()) {
-      !fs.existsSync(dest) && fs.mkdirSync(dest);
-      fs.readdirSync(src).forEach(function(childItemName) {
-        copyRecursiveSync(path.join(src, childItemName),
-                          path.join(dest, childItemName));
+function copyRecursive(src, dest) {
+  return fs.existsP(src).then(exists => {
+    if (exists) {
+      return fs.statP(src).then(stats => {
+        if (stats.isDirectory()) {
+          // Is a directory:
+          // 1. If the destination doesn't exist, then create it.
+          // 2. Get all things in the directory. Copy them one by one recursively themselves.
+          return fs.existsP(dest).then(exists => {
+            if (exists) {
+              return fs.mkdir(dest);
+            } else {
+              return Promise.resolve();
+            }
+          }).then(() => {
+            return fs.readdirP(src);
+          }).then(dirContent => {
+            const all = dirContent.map(childItemName => {
+              return copyRecursive(
+                path.join(src, childItemName),
+                path.join(dest, childItemName)
+              );
+            });
+            return Promise.all(all);
+          });
+        } else {
+          // Is a file. Make a new hard link to the file at `src`, effectively copying it.
+          return fs.existsP(dest).then(exists => {
+            if (!exists) {
+              return fs.linkP(src, dest);
+            }
+          });
+        }
       });
-    } else {
-      !fs.existsSync(dest) && fs.linkSync(src, dest);
     }
-  }
+  });
 };
 
 /**
@@ -57,14 +79,20 @@ function copyRecursiveSync(src, dest) {
  */
 function ensureDirectoryExistence(name) {
   const dirname = path.dirname(name);
-  if (fs.existsSync(dirname)) { return true; }
-  ensureDirectoryExistence(dirname);
-  fs.mkdirSync(dirname);
+  return fs.existsP(dirname).then(exists => {
+    if (exists) {
+      return true;
+    } else {
+      return ensureDirectoryExistence(dirname).then(() => {
+        return fs.mkdirP(dirname);
+      });
+    }
+  });
 }
 
 // Public API
 module.exports = {
-  flattenSourceMap: flattenSourceMap,
-  copyRecursiveSync: copyRecursiveSync,
-  ensureDirectoryExistence: ensureDirectoryExistence
+  flattenSourceMap,
+  copyRecursive,
+  ensureDirectoryExistence,
 };

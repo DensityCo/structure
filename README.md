@@ -19,6 +19,9 @@ and a css post-processor ([sass](https://sass-lang.com)).
 - **Troubleshootability.** Due to the above, it's difficult to develop and troubleshoot the development server.
 
 ## Getting Started
+
+*Note: For React apps, structure can be set to be the `react-scripts` package for easy setup: `create-react-app --scripts-version @density/structure`
+
 1. Install structure (`npm i -S @density/structure`)
 2. Create a build script. Here's an example:
 ```javascript
@@ -37,10 +40,10 @@ const assets = structure.assets(
 // Compile sass to css
 const sass = structure.sass('main.scss', 'dist/app.css');
 
-// Transpile all typescript files to their javascript equivilents.
+// Transpile all typescript files to their javascript equivalents.
 const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
 
-// Bundle all typescript with webpack
+// Bundle all transpiled files with webpack
 const webpack = structure.webpack('transpiled/main.js', 'dist/app.js');
 
 // Start the dev server
@@ -95,19 +98,19 @@ This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function. Several steps are run in mostly synchronous fashion to minimize timing bugs.
+`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function.
 
-The TypeScript is transpiled for file changes immediately, before the full program is checked. This is because I haven't figured out if it is possible or easy to update the representation that typescript works with internally, and checking the whole program again takes a few seconds.
+The TypeScript is immediately transpiled on save for quick refresh times, before the full program is checked. This is because we're not sure if it is possible to incrementally update the program representation that typescript works with internally, and checking the whole program again takes a few seconds.
 
 The logic on every TS change is this:
 
 1) Slam the added or updated file through the transpiler right away. This uses a persistent reference to a "language service" to emit the new file.
 
-2) Call `run` on a webpack "compiler" instance we also keep in memory. This has an entry point `main.js` and must do a lot of stuff automatically. Also it's asynchronous so we lose track of when it might finish, but everything that needs to happen after bundling is event-based.
+2) Call `run` on the bundler instance we also keep in memory. This has an entry point `main.js` and walks the file system to get the rest of the bundle.
 
-3) In the webpack callback, we can now force the live server instance to refresh. This `live-server` instance is monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before reload).
+3) In the webpack callback, we can now force the live server instance to refresh. This `live-server` instance is monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before the reload happens).
 
-4) Additionally we queue up a "slow" transpile after a second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads with an error it will show up in the console. This just uses a brand-new ts "program" every time that gets passed all the files in the source glob. This should probably be configurable because it is CPU-heavy.
+4) Additionally we queue up a "slow" transpile after a one-second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads any compile-time errors will show up in the console. This just builds a brand-new ts "program" every time that gets passed all the files in the source glob. This is configurable because it is CPU-heavy.
 
 The result is we get full type-checking on every change, but also a very fast reload for all valid changes.
 
@@ -118,35 +121,40 @@ The scripts make use of some helper abstractions to complete each step in the bu
 
 ### transpiler
 
-`transpiler_typescript` is currently used by internal-dashboard to transpile .ts and .tsx source files, which can include JSX and ES2015 features.
+`structure.typescript` transpiles .ts and .tsx source files, which can include JSX and ES2015 features.
 
-`transpiler_babel` is an alternative helper for things that babel supports (ES2015/2016/2017/etc, JSX, Flow).
+`structure.babel` is an alternative helper for things that babel supports (ES2015/2016/2017/etc, JSX, Flow).
 
-Both of these helpers have the same API:
+These helpers have and return the same API:
 
-- `configure(sourceGlob, options)`: Set up the transpiler to transpile files matching `sourceGlob` with `options` (typescript `compilerOptions` or babel `options`)
-- `transpile(name)`: Transpile a single file by file name. Must run `.configure()` first. Output directory is configured in `compilerOptions` for TypeScript and is currently hard-coded for babel.
-- `transpileAll(sourceGlob?, options?)`: Transpiles all files matching `sourceGlob` with `options`. If `.configure()` has already been called these parameters will fall back to formerly configured values.
+- `const transpiler = structure.typescript(inGlob, outPath, options)`: Call to return a transpiler that will transpile files matching `inGlob` using compiler `options` (TypeScript `compilerOptions` or Babel `options`) and write the transpiled files into the `outPath` directory.
+- `transpiler.transpile(name)`: Transpile a single file by file name. Returns a promise that resolves when the file is transpiled.
+- `transpiler.transpileAll()`: Transpiles all files matching the configured `inGlob`. Returns a promise that resolves when all files are transpiled.
 
 ### bundler
 
-`bundler` is imported into both scripts to bundle ES6 files with webpack. This helper has the following API:
+`structure.webpack` is used to bundle ES6 and/or Node modules with webpack. 
 
-- `configure(main, bundle, production, sourceMap)`: Call this with an entry script and the bundle destination to initialize the bundler instance. `production` will enable production mode and minify code. `sourceMap` will try to preserve source maps in a hacky way using the `sorcery` processor.
-- `bundle(callback?, dest?)`: Call this to bundle the output file. `dest` is just used to make sure the destination directory exist before trying to write the bundle, this could be better.
+`structure.browserify` is an alternative bundler for Node modules that uses browserify (ES6 support TBD). 
+
+These helpers have and return the same API:
+
+- `const bundler = structure.webpack(inFile, outFile, options)`: Call this with an entry script and the bundle destination to initialize the bundler instance. Setting `options.production` to `true` will enable production mode and minify code. Setting `options.sourceMap` will try to preserve source maps in a hacky way using the `sorcery` processor.
+- `bundler.bundle()`: Call this to bundle the output file. Returns a promise that resolves when the bundle is written.
 
 ### styles
 
-`styles` is used to run `node-sass` in both scripts, with a separate watcher for styles in the `start` script. Pretty simple helper with the following API:
+`structure.sass` is used to run `node-sass` in both scripts, with a separate watcher for styles in the `start` script. Pretty simple helper with the following API:
 
-- `configure(main, paths, bundle)`: Calling this with an entry SCSS file, paths to include, and the bundle destination will set up the bundler.
-- `compile(main?, paths?, bundle?)`: Use this method to compile. Parameters are the same as and fall back on values passed in a previous call to `.configure()`.
+- `const styles = structure.sass(main, paths, bundle)`: Call this with an entry SCSS file, paths to include, and the bundle destination. Returns a styles compiler.
+- `styles.compile()`: Use this method to compile a CSS bundle with the configured options. Returns a promise that resolves when the CSS bundle is written.
 
 ### assets
 
 Assets are copied with file system calls. This helper has the following API:
 
-- `.copy(paths?, index?, dest?)`: Calling this will copy over assets from the `paths` array to `dest/assets`. If `index` is null, the helper writes a hard-coded ReactJS page to `dest/index.html`.
+- `const assets = structure.assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath)`: Returns an assets copier that copies an index page and an assets folder. Not much to it.
+- `assets.copy()`: Copies the assets. Returns a promise that resolves when copying is finished.
 
 # Internals
 There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).

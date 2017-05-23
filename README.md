@@ -25,7 +25,7 @@ Structure can be installed on its own, or with [create-react-app](https://github
 
 For new React applications, structure can be configured as the `react-scripts` package (does not include a testing framework): 
 
-    `create-react-app --scripts-version @density/structure my-app`
+    create-react-app --scripts-version @density/structure my-app
 
 ### NPM
 

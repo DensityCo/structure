@@ -38,10 +38,10 @@ const structure = require('@density/structure');
 
 // Copy assets
 const assets = structure.assets(
-  'index.html',
+  'src/index.html',
   'dist/index.html',
-  'assets/',
-  'dist/assets/'
+  'src/assets',
+  'dist/assets'
 );
 
 // Compile sass to css

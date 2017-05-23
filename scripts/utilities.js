@@ -4,28 +4,29 @@ const sorcery = require('sorcery');
 
 // Flatten source maps, applying any middleware to preprocess weird URLs
 function flattenSourceMap(bundle, urlMiddleware = null) {
-  return new Promise((resolve, reject) => {
-    const mapName = `${bundle}.map`;
-    const origName = `${bundle}.map.orig`;
+  const mapName = `${bundle}.map`;
+  const origName = `${bundle}.map.orig`;
 
-    // Reset from "backup" of last cached sourcemap
-    if (fs.existsSync(origName)) {
-      fs.writeFileSync(mapName, fs.readFileSync(origName))
+  // Reset from "backup" of last cached sourcemap
+  return fs.existsP(origName).then(exists => {
+    if (exists) {
+      return fs.readFileP(mapName);
+    }
+  }).then(data => {
+    return fs.writeFileP(origName, data.toString());
+  }).then(() => {
+    // Default middleware setup
+    if (!urlMiddleware) {
+      urlMiddleware = url => url;
     }
 
-    // Default middleware setup
-    if (!urlMiddleware) { urlMiddleware = url => url; }
-
     // Run sorcery to flatten maps
-    const chain = sorcery.loadSync(bundle, {
-      urlMiddleware: urlMiddleware
-    });
-
+    return sorcery.load(bundle, {urlMiddleware});
+  }).then(chain => {
     // Write out flattened source map
-    let map = chain.apply().toString();
-    fs.writeFileSync(mapName, map);
-    resolve();
-  })
+    const map = chain.apply().toString();
+    return fs.writeFileP(mapName, map);
+  });
 }
 
 /**

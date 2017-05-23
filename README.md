@@ -65,8 +65,8 @@ structure.start({
 3. Run the script to get a live-reloading dev server: `node structure.js`
 ```sh
 $ # Set up a tiny project
-$ mkdir assets/
-$ mkdir src/ 
+$ mkdir src/
+$ mkdir src/assets/
 $ echo "console.log('Hello');" > src/main.ts
 $ echo "body { color: red; }" > src/main.scss
 $ cat <<EOF > src/index.html

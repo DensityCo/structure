@@ -45,20 +45,20 @@ const assets = structure.assets(
 );
 
 // Compile sass to css
-const sass = structure.sass('main.scss', 'dist/app.css');
+const styles = structure.sass('src/main.scss', 'dist/app.css');
 
 // Transpile all typescript files to their javascript equivalents.
-const typescript = structure.typescript('src/**/*.ts', 'transpiled/');
+const transpiler = structure.typescript('src/**/*.ts', 'transpiled/');
 
 // Bundle all transpiled files with webpack
-const webpack = structure.webpack('transpiled/main.js', 'dist/app.js');
+const bundler = structure.webpack('transpiled/main.js', 'dist/app.js');
 
 // Start the dev server
 structure.start({
   assets: assets,
-  styles: sass,
-  transpiler: typescript,
-  bundler: webpack,
+  styles: styles,
+  transpiler: transpiler,
+  bundler: bundler,
 });
 ```
 

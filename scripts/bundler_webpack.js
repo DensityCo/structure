@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const fs = require('fsp');
+const fs = require('fs-extra');
 const path = require('path');
 const webpack = require('webpack');
 const utilities = require('./utilities');
@@ -41,9 +41,9 @@ function bundler(inFile, outFile, options) {
 
     bundle: function() {
       const dest = path.dirname(_outFile);
-      return fs.existsP(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
+      return fs.exists(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
         if (!exists) {
-          return fs.mkdirP(dest);
+          return fs.mkdir(dest);
         }
       }).then(() => { // Bundle with Browserify
         return new Promise((resolve, reject) => {
@@ -57,8 +57,8 @@ function bundler(inFile, outFile, options) {
         });
       }).then(stats => { // Bundle with Browserify
         if (!_options.production && _options.sourceMap) { 
-          return fs.readFileP(`${outFile}.map`).then(mapContent => {
-            return fs.writeFileP(`${_outFile}.map.orig`, mapContent);
+          return fs.readFile(`${outFile}.map`).then(mapContent => {
+            return fs.writeFile(`${_outFile}.map.orig`, mapContent);
           }).then(() => {
             return utilities.flattenSourceMap(_outFile, url => {
               // Fix various webpack stuff

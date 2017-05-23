@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const fs = require('fsp');
+const fs = require('fs-extra');
 const glob = require('glob');
 const ts = require('typescript');
 const utilities = require('./utilities');
@@ -58,7 +58,7 @@ function transpiler(inGlob, outPath, options) {
         // Write output files to disk
         return Promise.all(output.outputFiles.map(o => {
           utilities.ensureDirectoryExistence(o.name);
-          return fs.writeFileP(o.name, o.text, "utf8");
+          return fs.writeFile(o.name, o.text, "utf8");
         })).then(() => {
           console.log(chalk.gray(`Transpile ${name} done!`));
         });

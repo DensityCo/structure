@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const fs = require('fsp');
+const fs = require('fs-extra');
 const sass = require('node-sass');
 
 const autoprefixer = require('autoprefixer');
@@ -43,7 +43,7 @@ function styles(inGlob, outFile, options) {
 
         return prefixed.css;
       }).then(css => {
-        return fs.writeFileP(_outFile, css);
+        return fs.writeFile(_outFile, css);
       }).then(() => {
         console.log(chalk.gray('Styles ready!'));
       });

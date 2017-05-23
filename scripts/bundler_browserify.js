@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const path = require('path');
-const fs = require('fsp');
+const fs = require('fs-extra');
 const browserify = require('browserify');
 const watchify = require('watchify');
 const utilities = require('./utilities');
@@ -27,9 +27,9 @@ function bundler(inFile, outFile, options) {
     options: _options,
 
     bundle: function () {
-      return fs.existsP(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
+      return fs.exists(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
         if (exists) {
-          return fs.mkdirP(dest);
+          return fs.mkdir(dest);
         }
       }).then(() => { // Bundle with Browserify
         return new Promise((resolve, reject) => {
@@ -44,11 +44,11 @@ function bundler(inFile, outFile, options) {
       }).catch(err => { // Handle bundling errors
         console.error(chalk.red(`Error bundling: ${err}`));
       }).then(buf => { // Write bundled code to output file.
-        fs.writeFileP(_outFile, buf.toString());
+        fs.writeFile(_outFile, buf.toString());
       }).then(() => { // If sourcemaps were turned on, then flatten source maps
         if (!_options.production && _options.sourceMap) {
-          return fs.readFileP(`${outFile}.map`).then(mapContent => {
-            return fs.writeFileP(`${_outFile}.map.orig`, mapContent);
+          return fs.readFile(`${outFile}.map`).then(mapContent => {
+            return fs.writeFile(`${_outFile}.map.orig`, mapContent);
           }).then(() => {
             // Attempt to flatten the source map with sourcery.
             return utilities.flattenSourceMap(_outFile, url => {

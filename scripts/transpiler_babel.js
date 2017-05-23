@@ -1,4 +1,4 @@
-const fs = require('fsp');
+const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const glob = require('glob');
@@ -33,7 +33,7 @@ function transpiler(inGlob, outPath, options) {
         });
       }).then(result => {
         utilities.ensureDirectoryExistence(dest);
-        return fs.writeFileP(dest, text, 'utf8')
+        return fs.writeFile(dest, text, 'utf8')
       }).then(() => {
         console.log(chalk.gray(`Transpile ${name} done!`));
       });

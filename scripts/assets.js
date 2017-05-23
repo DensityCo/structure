@@ -10,7 +10,6 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
   const _assetsOutPath = assetsOutPath;
 
   return {
-
     name: 'Assets Copier',
     indexInFile: _indexInFile,
     indexOutFile: _indexOutFile,
@@ -18,15 +17,14 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
     assetsOutPath: _assetsOutPath,
 
     copy: function () {
-      return new Promise((resolve, reject) => {
-        utilities.ensureDirectoryExistence(_indexOutFile);
-        fs.writeFileSync(_indexOutFile, fs.readFileSync(_indexInFile));
-
-        utilities.ensureDirectoryExistence(`${_assetsOutPath}/file.txt`);
-        utilities.copyRecursiveSync(_assetsInPath, _assetsOutPath);
-
+      return utilities.copyRecursive(_assetsInPath, _assetsOutPath).then(() => {
+        return utilities.ensureDirectoryExistence(_indexOutFile);
+      }).then(() => {
+        return fs.readFileP(_indexInFile);
+      }).then(contents => {
+        return fs.writeFileP(_indexOutFile, contents.toString());
+      }).then(() => {
         console.log(chalk.gray('Assets ready!'));
-        resolve();
       });
     }
   };

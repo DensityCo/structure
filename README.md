@@ -1,6 +1,5 @@
 # Structure
 
-[![CircleCI](https://circleci.com/gh/DensityCo/structure.svg?style=svg)](https://circleci.com/gh/DensityCo/structure)
 [![Dependency Status](https://david-dm.org/densityco/structure.svg)](https://david-dm.org/densityco/structure)
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -20,7 +19,15 @@ and a css post-processor ([sass](https://sass-lang.com)).
 
 ## Getting Started
 
-*Note: For React apps, structure can be set to be the `react-scripts` package for easy setup: `create-react-app --scripts-version @density/structure`
+Structure can be installed on its own, or with [create-react-app](https://github.com/facebookincubator/create-react-app/).
+
+### create-react-app
+
+For new React applications, structure can be configured as the `react-scripts` package (does not include a testing framework): 
+
+    `create-react-app --scripts-version @density/structure my-app`
+
+### NPM
 
 1. Install structure (`npm i -S @density/structure`)
 2. Create a build script. Here's an example:

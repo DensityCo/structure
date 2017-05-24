@@ -23,56 +23,85 @@ Structure can be installed on its own, or with [create-react-app](https://github
 
 ### create-react-app
 
-For new React applications, structure can be configured as the `react-scripts` package (does not include a testing framework): 
+For new React applications, structure can be configured as the `react-scripts` package (does not include a testing framework):
 
     create-react-app --scripts-version @density/structure my-app
 
 ### NPM
 
 1. Install structure (`npm i -S @density/structure`)
-2. Create a build script. Here's an example:
+2. Create a build script. Here's an example (more details found in [contributing](CONTRIBUTING.md)):
 
-		// structure.js
-			
-		const structure = require('@density/structure');
-			
-		// Copy assets
-		const assets = structure.assets(
-		  './src/index.html',
-		  './dist/index.html',
-		  './src/assets',
-		  './dist/assets'
-		);
-			
-		// Compile sass to css
-		const styles = structure.sass('./src/main.scss', './dist/app.css');
-			
-		// Transpile all typescript files to their javascript equivalents.
-		const transpiler = structure.typescript('./src/**/*.ts', './tmp');
-			
-		// Bundle all transpiled files with webpack
-		const bundler = structure.webpack('./tmp/main.js', './dist/app.js');
-			
-		// Start the dev server
-		structure.start({
-			
-		  // Pass in the modules we set up above
-		  assets: assets,
-		  styles: styles,
-		  transpiler: transpiler,
-		  bundler: bundler,
-			
-		  // These are defaults but any live-server options can go here
-		  serverOptions: {
-		    root: './dist',
-		    file: 'index.html'
-		  }
-		});
+```javascript
+// structure.js
 
+const structure = require('@density/structure');
 
-3. Run the script to get a live-reloading dev server: `node structure.js`
+// Copy assets
+const assets = structure.assets(
+  './src/index.html',
+  './dist/index.html',
+  './src/assets',
+  './dist/assets'
+);
+
+// Compile sass to css
+const styles = structure.sass('./src/main.scss', './dist/app.css');
+
+// Transpile all typescript files to their javascript equivalents.
+const transpiler = structure.typescript('./src/**/*.ts', './tmp');
+
+// Bundle all transpiled files with webpack
+const bundler = structure.webpack('./tmp/main.js', './dist/app.js');
+
+// Start the dev server
+structure.start({
+
+  // Pass in the modules we set up above
+  assets: assets,
+  styles: styles,
+  transpiler: transpiler,
+  bundler: bundler,
+
+  // These are defaults but any live-server options can go here
+  serverOptions: {
+    root: './dist',
+    file: 'index.html'
+  }
+});
+```
+
+3. Run the script to get a live-reloading dev server: `node structure.js`.
 
 4. *BONUS: add a `start` script in your package.json file that runs the build script: `"start": "node structure.js"`*
+
+An end to end example:
+
+```sh
+$ # Set up a tiny project
+$ mkdir src/
+$ mkdir src/assets/
+$ echo "console.log('Hello');" > src/main.ts
+$ echo "body { color: red; }" > src/main.scss
+$ cat <<EOF > src/index.html
+<html>
+ <head>
+   <link rel="stylesheet" href="/app.css" />
+ </head>
+ <body>
+   <h1>Hello</h1>
+   <script src="/app.js"></script>
+ </body>
+</html>
+EOF
+$ # Build the project
+$ node structure.js
+* Assets ready!
+* Styles ready!
+* Full transpile done!
+* Bundle ready!
+* Serving "./dist" at http://127.0.0.1:8080
+```
 
 ## Transpiler/bundler Build System
 Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and Webpack's API to bundle. The reason for using these specific APIs directly is that we get faster compile times by keeping the compilers in memory. Alternate configurations utilize Babel and Browserify for transpiling and bundling, respectively.

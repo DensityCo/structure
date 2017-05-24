@@ -1,11 +1,19 @@
 const fs = require('fs');
+const path = require('path');
 const chokidar = require('chokidar');
 const liveServer = require('live-server');
 
 function start(options) {
 
   // Extract options
-  const { assets, styles, transpiler, bundler } = options;
+  let { assets, styles, transpiler, bundler, serverOptions } = options;
+
+  // Default values for modules and server options
+  assets = assets || { copy: () => Promise.resolve() }
+  styles = styles || { compile: () => Promise.resolve() }
+  transpiler = transpiler || { transpileAll: () => Promise.resolve() }
+  bundler = bundler || { bundle: () => Promise.resolve() }
+  serverOptions = serverOptions || {};
 
   // Pending callbacks
   let stylesPromise = null;
@@ -75,7 +83,7 @@ function start(options) {
     return new Promise((resolve, reject) => {
 
       // Configure live-server
-      const params = {
+      const params = Object.assign({
         port: 8080,
         host: "0.0.0.0",
         root: "./dist",
@@ -88,7 +96,7 @@ function start(options) {
         open: true,
         wait: 0,
         logLevel: 2
-      };
+      }, serverOptions);
 
       // Start monkey-patched live-server.
       // We remove the listeners so it doesn't watch any files.
@@ -113,43 +121,46 @@ function start(options) {
     .then(() => {
 
       // Watcher for all style source files
-      const styleWatch = chokidar.watch(styles.inGlob, {
-        persistent: true,
-        ignoreInitial: true
-      }).on('all', (event, fileName) => {
+      if (styles.inGlob) {
+        chokidar.watch(styles.inGlob, {
+          persistent: true,
+          ignoreInitial: true
+        }).on('all', (event, fileName) => {
 
-        // Ignore files
-        if (exclude(fileName)) { return; }
+          // Ignore files
+          if (exclude(fileName)) { return; }
 
-        // Run update or queue it up
-        if (stylesPending > 0 && stylesPending < 2) {
-          stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
-          stylesPending++;
-        } else if (stylesPending <= 0) {
-          stylesPromise = updateStyles(event, fileName);
-          stylesPending = 1;
-        }
-      });
+          // Run update or queue it up
+          if (stylesPending > 0 && stylesPending < 2) {
+            stylesPromise = stylesPromise.then(updateStyles.bind(null, event, fileName));
+            stylesPending++;
+          } else if (stylesPending <= 0) {
+            stylesPromise = updateStyles(event, fileName);
+            stylesPending = 1;
+          }
+        })
+      };
 
       // Watcher for all .ts and .tsx files
-      const scriptWatch = chokidar.watch(transpiler.inGlob, { 
-        persistent: true,
-        ignoreInitial: true
-      }).on('all', (event, fileName) => {
+      if (transpiler.inGlob || bundler.inFile) {
+        chokidar.watch(transpiler.inGlob || path.dirname(bundler.inFile), { 
+          persistent: true,
+          ignoreInitial: true
+        }).on('all', (event, fileName) => {
 
-        // Ignore files
-        if (exclude(fileName)) { return; }
+          // Ignore files
+          if (exclude(fileName)) { return; }
 
-        // Run update or queue it up 
-        if (scriptsPending > 0 && scriptsPending < 2) {
-          scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
-          scriptsPending++;
-        } else if (scriptsPending <= 0) {
-          scriptsPromise = updateScripts(event, fileName);
-          scriptsPending = 1;
-        }
-      });
-
+          // Run update or queue it up 
+          if (scriptsPending > 0 && scriptsPending < 2) {
+            scriptsPromise = scriptsPromise.then(updateScripts.bind(null, event, fileName));
+            scriptsPending++;
+          } else if (scriptsPending <= 0) {
+            scriptsPromise = updateScripts(event, fileName);
+            scriptsPending = 1;
+          }
+        });
+      }
     });
 }
 

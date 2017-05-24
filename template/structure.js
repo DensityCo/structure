@@ -5,6 +5,9 @@
 // Structure dependency
 const structure = require('@density/structure');
 
+// Task argument
+const task = process.argv.length > 2 ? process.argv[2] : 'start';
+
 // Set up assets copyier thingamajig
 const assets = structure.assets(
   './src/index.html',
@@ -38,7 +41,7 @@ const transpiler = structure.typescript(
     allowSyntheticDefaultImports: true,
     alwaysStrict: true,
     jsx: 2, // ENUM: JsxEmit.React, CLI: react
-    sourceMap: true,
+    sourceMap: task === 'start',
     module: 1, // ENUM: ModuleKind.CommonJS, CLI: commonjs
     target: 1, // ENUM: ScriptTarget.ES5, CLI: es5
     moduleResolution: 2, // ENUM: ModuleResolutionKind.NodeJs, CLI: node
@@ -50,8 +53,8 @@ const bundler = structure.webpack(
   './tmp/main.js',
   './dist/app.js',
   {
-    sourceMap: true,
-    production: false,
+    sourceMap: task === 'start',
+    production: task === 'build',
   }
 );
 
@@ -64,9 +67,9 @@ const options = {
 };
 
 // Run the correct task!
-if (process.argv.length > 2 && process.argv[2] === "build") {
+if (task === 'build') {
   structure.build(options);
-} else if (process.argv.length <= 2 || process.argv[2] === "start") {
+} else if (task === "start") {
   structure.start(options);
 } else {
   throw new Error("Unrecognized task!");

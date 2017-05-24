@@ -60,7 +60,7 @@ function start(options) {
 
         // Update live server last
         pending.then(() => {
-          liveServer.change(bundler.outFile);
+          liveServer.change(bundler.outFile || assets.indexOutFile);
           scriptsPending--;
           resolve();
         });

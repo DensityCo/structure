@@ -1,6 +1,6 @@
 {
   "name": "@density/structure",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "This set of scripts builds and watches JS projects using popular transpiler and bundler APIs.",
   "homepage": "https://github.com/DensityCo/structure",
   "main": "index.js",

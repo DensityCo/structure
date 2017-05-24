@@ -12,7 +12,7 @@ and a css post-processor ([sass](https://sass-lang.com)).
 
 ## Why not use Webpack to do all of this?
 - **Flexibility.** Configuring Webpack to support a custom stack can be clunky and complex.
-- **Transparency.** When you buy into the "webpack way", you end up using tons of plugins that are
+- **Transparency.** When you buy into the "Webpack way", you end up using tons of plugins that are
   really opaque. Because you don't really know what transforms your code goes through, it's hard to
   optimise your bundle easily.
 - **Troubleshootability.** Due to the above, it's difficult to develop and troubleshoot the development server.
@@ -92,7 +92,7 @@ $ node structure.js
 4. *BONUS: add a `start` script in your package.json file that runs the build script: `"start": "node structure.js"`*
 
 ## Transpiler/bundler Build System
-Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses browserify instead of webpack. The reason for using these APIs directly is that we get "fast" compilation for development by keeping the compilers in memory.
+Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and Webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses Browserify instead of Webpack. The reason for using these APIs directly is that we get faster compile times by keeping the compilers in memory.
 
 ## NodeJS Scripts
 
@@ -106,9 +106,9 @@ This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`start` is more complicated. We want incremental or "fast" compilation when we're developing, plus a nice live reload function.
+`start` is more complicated. We want incremental or "fast" compilation when we're developing, and a live reload function.
 
-The TypeScript is immediately transpiled on save for quick refresh times, before the full program is checked. This is because we're not sure if it is possible to incrementally update the program representation that typescript works with internally, and checking the whole program again takes a few seconds.
+Each TypeScript file is immediately transpiled on every save for quick refresh times, before the full program is typechecked. This is because we're not sure if it is possible to incrementally update the program representation that TypeScript works with internally, and checking the whole program again takes a few extra seconds.
 
 The logic on every TS change is this:
 
@@ -116,16 +116,16 @@ The logic on every TS change is this:
 
 2) Call `run` on the bundler instance we also keep in memory. This has an entry point `main.js` and walks the file system to get the rest of the bundle.
 
-3) In the webpack callback, we can now force the live server instance to refresh. This `live-server` instance is monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before the reload happens).
+3) In the bundler callback, we can now force the dev server to refresh. The `live-server` instance is actually monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before the reload happens).
 
-4) Additionally we queue up a "slow" transpile after a one-second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads any compile-time errors will show up in the console. This just builds a brand-new ts "program" every time that gets passed all the files in the source glob. This is configurable because it is CPU-heavy.
+4) Additionally we queue up a "slow" typecheck and transpile after a one-second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads any compile-time errors will show up in the console. It builds a brand-new "program" every time that processes all files in the project. This is configurable because it is CPU-heavy.
 
-The result is we get full type-checking on every change, but also a very fast reload for all valid changes.
+The result is we get full type-checking on every change, but also a fast reload for all valid changes (and a *very* fast reload if sourcemaps are disabled in the bundler config).
 
 
 ## Helper Modules
 
-The scripts make use of some helper abstractions to complete each step in the build process as needed. These scripts are in progress but have a fairly standard API:
+The scripts make use of some helper abstractions to complete each step in the build process as needed. Each component has a standard API:
 
 ### transpiler
 
@@ -133,7 +133,7 @@ The scripts make use of some helper abstractions to complete each step in the bu
 
 `structure.babel` is an alternative helper for things that babel supports (ES2015/2016/2017/etc, JSX, Flow).
 
-These helpers have and return the same API:
+These helpers both have and return the same API:
 
 - `const transpiler = structure.typescript(inGlob, outPath, options)`: Call to return a transpiler that will transpile files matching `inGlob` using compiler `options` (TypeScript `compilerOptions` or Babel `options`) and write the transpiled files into the `outPath` directory.
 - `transpiler.transpile(name)`: Transpile a single file by file name. Returns a promise that resolves when the file is transpiled.
@@ -145,7 +145,7 @@ These helpers have and return the same API:
 
 `structure.browserify` is an alternative bundler for Node modules that uses browserify (ES6 support TBD). 
 
-These helpers have and return the same API:
+These helpers both have and return the same API:
 
 - `const bundler = structure.webpack(inFile, outFile, options)`: Call this with an entry script and the bundle destination to initialize the bundler instance. Setting `options.production` to `true` will enable production mode and minify code. Setting `options.sourceMap` will try to preserve source maps in a hacky way using the `sorcery` processor.
 - `bundler.bundle()`: Call this to bundle the output file. Returns a promise that resolves when the bundle is written.

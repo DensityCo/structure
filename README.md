@@ -39,17 +39,17 @@ const structure = require('@density/structure');
 
 // Copy assets
 const assets = structure.assets(
-  'src/index.html',
-  'dist/index.html',
-  'src/assets',
-  'dist/assets'
+  './src/index.html',
+  './dist/index.html',
+  './src/assets',
+  './dist/assets'
 );
 
 // Compile sass to css
 const styles = structure.sass('./src/main.scss', './dist/app.css');
 
 // Transpile all typescript files to their javascript equivalents.
-const transpiler = structure.typescript('./src/**/*.ts', './tmp/');
+const transpiler = structure.typescript('./src/**/*.ts', './tmp');
 
 // Bundle all transpiled files with webpack
 const bundler = structure.webpack('./tmp/main.js', './dist/app.js');

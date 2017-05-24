@@ -41,14 +41,14 @@ module.exports = function(
     // Copy template files
     console.log(chalk.gray('Copy template...'));
     const templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');
-    return fs.exists(templatePath);
-  }).then(exists => {
-    if (exists) {
-      return utilities.copyRecursive(templatePath, appPath);
-    } else {
-      console.error('Could not locate supplied template: ' + chalk.green(templatePath));
-      return;
-    }
+    return fs.exists(templatePath).then(exists => {
+      if (exists) {
+        return utilities.copyRecursive(templatePath, appPath);
+      } else {
+        console.error('Could not locate supplied template: ' + chalk.green(templatePath));
+        return;
+      }
+    });
   }).then(() => {
     console.log(chalk.gray('Edit init/index.js to add more init tasks!'));
   });

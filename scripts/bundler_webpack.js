@@ -44,6 +44,8 @@ function bundler(inFile, outFile, options) {
       return fs.exists(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
         if (!exists) {
           return fs.mkdir(dest);
+        } else {
+          return Promise.resolve();
         }
       }).then(() => { // Bundle with Browserify
         return new Promise((resolve, reject) => {
@@ -55,7 +57,7 @@ function bundler(inFile, outFile, options) {
             }
           });
         });
-      }).then(stats => { // Bundle with Browserify
+      }).then(stats => { // Bundle with Webpack
         if (!_options.production && _options.sourceMap) { 
           return fs.readFile(`${outFile}.map`).then(mapContent => {
             return fs.writeFile(`${_outFile}.map.orig`, mapContent);
@@ -84,6 +86,8 @@ function bundler(inFile, outFile, options) {
               return url;
             });
           }); 
+        } else {
+          return Promise.resolve();
         }
       }).then(() => {
         console.log(chalk.gray('Bundle ready!'));

@@ -30,6 +30,8 @@ function bundler(inFile, outFile, options) {
       return fs.exists(dest).then(exists => { // Create the folder for the out file if is doesn't exist.
         if (exists) {
           return fs.mkdir(dest);
+        } else {
+          return Promise.resolve();
         }
       }).then(() => { // Bundle with Browserify
         return new Promise((resolve, reject) => {

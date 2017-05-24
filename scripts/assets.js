@@ -17,12 +17,10 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
     assetsOutPath: _assetsOutPath,
 
     copy: function () {
-      return utilities.copyRecursive(_assetsInPath, _assetsOutPath).then(() => {
-        return fs.mkdirp(path.dirname(_indexOutFile));
-      }).then(() => {
+      return fs.copy(_assetsInPath, _assetsOutPath).then(() => {
         return fs.readFile(_indexInFile);
       }).then(contents => {
-        return fs.writeFile(_indexOutFile, contents.toString());
+        return fs.outputFile(_indexOutFile, contents.toString());
       }).then(() => {
         console.log(chalk.gray('Assets ready!'));
       });

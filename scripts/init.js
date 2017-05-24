@@ -43,10 +43,10 @@ module.exports = function(
     const templatePath = template ? path.resolve(originalDirectory, template) : path.join(ownPath, 'template');
     return fs.exists(templatePath).then(exists => {
       if (exists) {
-        return utilities.copyRecursive(templatePath, appPath);
+        return fs.copy(templatePath, appPath);
       } else {
         console.error('Could not locate supplied template: ' + chalk.green(templatePath));
-        return;
+        return Promise.resolve();;
       }
     });
   }).then(() => {

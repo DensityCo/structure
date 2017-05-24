@@ -46,7 +46,7 @@ function copyRecursive(src, dest) {
           // 2. Get all things in the directory. Copy them one by one recursively themselves.
           return fs.exists(dest).then(exists => {
             if (exists) {
-              return fs.mkdir(dest);
+              return fs.mkdirp(dest);
             } else {
               return Promise.resolve();
             }

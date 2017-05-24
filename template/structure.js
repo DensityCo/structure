@@ -50,7 +50,7 @@ const bundler = structure.webpack(
   './tmp/main.js',
   './dist/app.js',
   {
-    sourceMaps: true,
+    sourceMap: true,
     production: false,
   }
 );

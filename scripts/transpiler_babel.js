@@ -32,8 +32,8 @@ function transpiler(inGlob, outPath, options) {
           }
         });
       }).then(result => {
-        utilities.ensureDirectoryExistence(dest);
-        return fs.writeFile(dest, text, 'utf8')
+        return fs.mkdirp(path.dirname(dest))
+          .then(() => fs.writeFile(dest, text, 'utf8'));
       }).then(() => {
         console.log(chalk.gray(`Transpile ${name} done!`));
       });

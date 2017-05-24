@@ -65,7 +65,7 @@ function copyRecursive(src, dest) {
           // Is a file. Make a new hard link to the file at `src`, effectively copying it.
           return fs.exists(dest).then(exists => {
             if (!exists) {
-              return fs.link(src, dest);
+              return fs.mkdirp(dest).then(() => fs.link(src, dest));
             }
           });
         }
@@ -74,26 +74,8 @@ function copyRecursive(src, dest) {
   });
 };
 
-/**
- * Helper to make necessary directory structure for a file.
- * @param {string} name The path to the file.
- */
-function ensureDirectoryExistence(name) {
-  const dirname = path.dirname(name);
-  return fs.exists(dirname).then(exists => {
-    if (exists) {
-      return true;
-    } else {
-      return ensureDirectoryExistence(dirname).then(() => {
-        return fs.mkdir(dirname);
-      });
-    }
-  });
-}
-
 // Public API
 module.exports = {
   flattenSourceMap,
   copyRecursive,
-  ensureDirectoryExistence,
 };

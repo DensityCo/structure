@@ -18,7 +18,7 @@ function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
 
     copy: function () {
       return utilities.copyRecursive(_assetsInPath, _assetsOutPath).then(() => {
-        return utilities.ensureDirectoryExistence(_indexOutFile);
+        return fs.mkdirp(path.dirname(_indexOutFile));
       }).then(() => {
         return fs.readFile(_indexInFile);
       }).then(contents => {

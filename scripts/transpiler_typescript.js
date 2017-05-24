@@ -57,8 +57,8 @@ function transpiler(inGlob, outPath, options) {
       } else {
         // Write output files to disk
         return Promise.all(output.outputFiles.map(o => {
-          utilities.ensureDirectoryExistence(o.name);
-          return fs.writeFile(o.name, o.text, "utf8");
+          return fs.mkdirp(path.dirname(o.name))
+            .then(() => fs.writeFile(o.name, o.text, "utf8"));
         })).then(() => {
           console.log(chalk.gray(`Transpile ${name} done!`));
         });

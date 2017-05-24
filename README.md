@@ -116,21 +116,21 @@ This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`structure.start` is more complicated. We want incremental or "fast" compilation when we're developing, and a live reload function.
+`structure.start` is more complicated. We want incremental or "fast" compilation when we're developing, and a live reload function. The `transpiler.transpile()` function can be passed a filename to fast-transpile individual files on each save.
 
-Each TypeScript file is immediately transpiled on every save for quick refresh times, before the full program is typechecked. This is because we're not sure if it is possible to incrementally update the program representation that TypeScript works with internally, and checking the whole program again takes a few extra seconds.
+With the TypeScript transpiler, each source file is immediately transpiled on every save for a quick refresh, before the full program is typechecked. This is because we're not sure if it is possible to incrementally update the program representation that TypeScript works with internally, and checking the whole program again takes a few extra seconds.
 
 The logic on every TS change is this:
 
-1) Slam the added or updated file through the transpiler right away. This uses a persistent reference to a "language service" to emit the new file.
+1) Run the added or updated file through the transpiler right away and write the transpiled output. This uses a persistent reference to a "language service" to process and emit the new file.
 
-2) Call `run` on the bundler instance we also keep in memory. This has an entry point `main.js` and walks the file system to get the rest of the bundle.
+2) Call `run` or whatever on the bundler instance in memory. This has an entry point `main.js` and walks the file system to get the rest of the bundle.
 
 3) In the bundler callback, we can now force the dev server to refresh. The `live-server` instance is actually monkey-patched at the end of the `start` script. It has a `.change()` method and doesn't actually watch files (so we can be sure everything is done before the reload happens).
 
-4) Additionally we queue up a "slow" typecheck and transpile after a one-second delay. This will get us comprehensive error checking in the console, so a few seconds after your browser reloads any compile-time errors will show up in the console. It builds a brand-new "program" every time that processes all files in the project. This is configurable because it is CPU-heavy.
+4) Finally queue up a "slow" full typecheck + transpile after a one-second delay. This will get us comprehensive error checking in the console, so a few seconds after the browser reloads, any compile-time errors will show up in the console. It makes a brand-new "program" instance every time that processes all files in the project.
 
-The result is we get full type-checking on every change, but also a fast reload for all valid changes (and a *very* fast reload if sourcemaps are disabled in the bundler config).
+The result is we get full typechecking on every change, and fast reload for all valid changes (a *very* fast reload if sourcemaps are disabled).
 
 
 ## Helper Modules

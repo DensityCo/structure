@@ -41,7 +41,7 @@
     "live-server": "^1.2.0",
     "node-sass": "^4.5.0",
     "postcss": "^5.2.17",
-    "sorcery": "ssh://git@github.com/DensityCo/sorcery.git#a0a2872ef181b69dbc2b28000792bc774960f12c",
+    "sorcery": "ssh://git@github.com/DensityCo/sorcery.git#5d7183eed6049035e223e5aa7c950fb71ccc85ba",
     "typescript": "^2.2.1",
     "uglify-js": "^2.8.18",
     "watchify": "^3.9.0",

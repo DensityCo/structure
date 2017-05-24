@@ -67,14 +67,14 @@ const options = {
 };
 
 // Run the correct task!
-if (task === 'build' || task === 'lean') {
+if (task === 'build') {
   structure.build({
     assets: assets,
     styles: styles,
     transpiler: transpiler,
     bundler: bundler
   });
-} else if (task === "start") {
+} else if (task === 'start' || task === 'lean') {
   structure.start({
     assets: assets,
     styles: styles,
@@ -91,5 +91,5 @@ if (task === 'build' || task === 'lean') {
     }
   });
 } else {
-  throw new Error("Unrecognized task!");
+  throw new Error('Unrecognized task!');
 }

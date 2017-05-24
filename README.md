@@ -36,6 +36,7 @@ For new React applications, structure can be configured as the `react-scripts` p
 
 const structure = require('@density/structure');
 
+
 // Copy assets
 const assets = structure.assets(
   'src/index.html',
@@ -53,12 +54,21 @@ const transpiler = structure.typescript('src/**/*.ts', 'transpiled/');
 // Bundle all transpiled files with webpack
 const bundler = structure.webpack('transpiled/main.js', 'dist/app.js');
 
+
 // Start the dev server
 structure.start({
+
+  // Pass in the modules we set up above
   assets: assets,
   styles: styles,
   transpiler: transpiler,
   bundler: bundler,
+
+  // These are defaults but any live-server options can go here
+  serverOptions: {
+    root: 'dist',
+    file: 'index.html'
+  }
 });
 ```
 
@@ -100,13 +110,13 @@ Subfolders in this project are for purpose-built scripts, like `build` and `star
 
 ### build
 
-`build` is pretty straightforward. It imports the parts used to compile everything and runs a full transpile and bundle with CSS and assets.
+`structure.build` is pretty straightforward. It imports the parts used to compile everything and runs a full transpile and bundle with CSS and assets.
 
 This script runs the final ES5 output through UglifyJS by default.
 
 ### start
 
-`start` is more complicated. We want incremental or "fast" compilation when we're developing, and a live reload function.
+`structure.start` is more complicated. We want incremental or "fast" compilation when we're developing, and a live reload function.
 
 Each TypeScript file is immediately transpiled on every save for quick refresh times, before the full program is typechecked. This is because we're not sure if it is possible to incrementally update the program representation that TypeScript works with internally, and checking the whole program again takes a few extra seconds.
 

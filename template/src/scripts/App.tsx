@@ -6,7 +6,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <div className="App-header">
-          <img src="/assets/logo.svg" class="App-logo" alt="logo" />
+          <img className="App-logo" src="/assets/logo.svg" alt="logo" />
           <h2>Welcome to (Structure) React</h2>
         </div>
         <p className="App-intro">

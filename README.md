@@ -46,13 +46,13 @@ const assets = structure.assets(
 );
 
 // Compile sass to css
-const styles = structure.sass('src/main.scss', 'dist/app.css');
+const styles = structure.sass('./src/main.scss', './dist/app.css');
 
 // Transpile all typescript files to their javascript equivalents.
-const transpiler = structure.typescript('src/**/*.ts', 'transpiled/');
+const transpiler = structure.typescript('./src/**/*.ts', './tmp/');
 
 // Bundle all transpiled files with webpack
-const bundler = structure.webpack('transpiled/main.js', 'dist/app.js');
+const bundler = structure.webpack('./tmp/main.js', './dist/app.js');
 
 
 // Start the dev server
@@ -66,7 +66,7 @@ structure.start({
 
   // These are defaults but any live-server options can go here
   serverOptions: {
-    root: 'dist',
+    root: './dist',
     file: 'index.html'
   }
 });
@@ -101,7 +101,7 @@ $ node structure.js
 
 4. *BONUS: add a `start` script in your package.json file that runs the build script: `"start": "node structure.js"`*
 
-5. *DOUBLE SECRET BONUS: run `node stucture.js lean` instead to skip sourcemaps. This makes incremental compiles super fast!*
+5. *DOUBLE SECRET BONUS: use `node stucture.js lean` to skip sourcemaps. This makes incremental compiles super fast!*
 
 ## Transpiler/bundler Build System
 Structure has scripts to set up and run each step in the build process. Right now it uses the TypeScript compiler API to transpile and watch, and Webpack's API to bundle. An alternate transpiler module uses the Babel API instead of TypeScript. An alternate bundler module uses Browserify instead of Webpack. The reason for using these APIs directly is that we get faster compile times by keeping the compilers in memory.

@@ -54,7 +54,7 @@ const bundler = structure.webpack(
   './dist/app.js',
   {
     sourceMap: task === 'start',
-    production: task === 'build',
+    production: task === 'build'
   }
 );
 
@@ -63,14 +63,33 @@ const options = {
   assets: assets,
   styles: styles,
   transpiler: transpiler,
-  bundler: bundler,
+  bundler: bundler
 };
 
 // Run the correct task!
-if (task === 'build') {
-  structure.build(options);
+if (task === 'build' || task === 'lean') {
+  structure.build({
+    assets: assets,
+    styles: styles,
+    transpiler: transpiler,
+    bundler: bundler
+  });
 } else if (task === "start") {
-  structure.start(options);
+  structure.start({
+    assets: assets,
+    styles: styles,
+    transpiler: transpiler,
+    bundler: bundler,
+    serverOptions: {
+      root: 'dist',
+      file: 'index.html',
+      mount: [
+        ['/node_modules', './node_modules'],
+        ['/src', './src'],
+        ['/tmp', './tmp']
+      ]
+    }
+  });
 } else {
   throw new Error("Unrecognized task!");
 }

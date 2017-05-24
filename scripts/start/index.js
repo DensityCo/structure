@@ -88,13 +88,8 @@ function start(options) {
         host: "0.0.0.0",
         root: "./dist",
         file: "index.html",
-        mount: [
-          ['/node_modules', './node_modules'],
-          ['/src', './src'],
-          ['/tmp', './tmp'],
-        ],
         open: true,
-        wait: 0,
+        wait: 50,
         logLevel: 2
       }, serverOptions);
 

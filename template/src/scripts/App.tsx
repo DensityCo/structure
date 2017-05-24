@@ -6,7 +6,8 @@ class App extends React.Component {
     return (
       <div className="App">
         <div className="App-header">
-          <h2>Welcome to (Density) React</h2>
+          <img src="/assets/logo.svg" class="App-logo" alt="logo" />
+          <h2>Welcome to (Structure) React</h2>
         </div>
         <p className="App-intro">
           To get started, edit <code>src/scripts/App.tsx</code> and save to reload.

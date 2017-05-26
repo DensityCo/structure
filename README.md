@@ -6,6 +6,8 @@
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+<br />
+
 Structure is a modular build system for frontend projects. It's built to be flexible, transparent, and to supress
 lock-in to any one technology (we're looking at you, Webpack). There is out of the box support for a
 number of transpilers ([typescript](https://www.typescriptlang.org/), [babel](https://babeljs.io)),

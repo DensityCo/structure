@@ -1,5 +1,7 @@
 <img src="https://cdn.rawgit.com/DensityCo/structure/master/logo.svg" height="40" />
 
+<br />
+
 [![Dependency Status](https://david-dm.org/densityco/structure.svg)](https://david-dm.org/densityco/structure)
 [![Package Version](https://img.shields.io/npm/v/@density/structure.svg)](https://npmjs.com/@density/structure)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)

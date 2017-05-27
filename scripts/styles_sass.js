@@ -25,7 +25,7 @@ function styles(inGlob, outFile, options) {
     compile: function () {
       return new Promise((resolve, reject) => {
         sass.render({
-          file: _inGlob,
+          file: _inFile,
           includePaths: _options.paths || []
         }, (err, result) => {
           if (err) {

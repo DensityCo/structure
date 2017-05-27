@@ -18,7 +18,7 @@ const assets = structure.assets(
 
 // Set up styles
 const styles = structure.sass(
-  './src/styles/main.scss',
+  './src/styles/**/*.scss',
   './dist/app.css',
   {
     paths: [
@@ -81,7 +81,7 @@ if (task === 'build') {
     transpiler: transpiler,
     bundler: bundler,
     serverOptions: {
-      root: 'dist',
+      root: './dist',
       file: 'index.html',
       mount: [
         ['/node_modules', './node_modules'],

@@ -6,7 +6,8 @@ const babel = require('babel-core');
 const utilities = require('./utilities');
 
 // Helper to set configuration
-function transpiler(inGlob, outPath, options) {
+function transpiler(inFile, inGlob, outPath, options) {
+  const _inFile = inFile;
   const _inGlob = inGlob;
   const _outPath = outPath;
   const _options = options || {};
@@ -15,6 +16,7 @@ function transpiler(inGlob, outPath, options) {
   // Common Transpiler API
   return  {
     name: 'Babel Transpiler',
+    inFile: _inFile,
     inGlob: _inGlob,
     outPath: _outPath,
     options: _options,

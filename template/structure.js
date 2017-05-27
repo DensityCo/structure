@@ -18,6 +18,7 @@ const assets = structure.assets(
 
 // Set up styles
 const styles = structure.sass(
+  './src/styles/main.scss',
   './src/styles/**/*.scss',
   './dist/app.css',
   {

@@ -9,7 +9,8 @@ const postcss = require('postcss');
 // This API is still "opinionated"
 // Main is a filename that points to an entry SCSS
 // Regular CSS has no concept of including/entry 
-function styles(inGlob, outFile, options) {
+function styles(inFile, inGlob, outFile, options) {
+  const _inFile = inFile;
   const _inGlob = inGlob;
   const _outFile = outFile;
   const _options = options || {};
@@ -18,6 +19,7 @@ function styles(inGlob, outFile, options) {
   // "Common" Styles API
   return {
     name: 'SCSS Post-Processor',
+    inFile: _inFile,
     inGlob: _inGlob,
     outFile: _outFile,
     options: _options,

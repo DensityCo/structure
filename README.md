@@ -1,4 +1,4 @@
-<img src="https://cdn.rawgit.com/DensityCo/structure/master/logo.svg" height="40" />
+<img src="https://cdn.rawgit.com/DensityCo/structure/master/logo.svg" height="50" />
 
 <br />
 

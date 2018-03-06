@@ -7,10 +7,10 @@ test:
     - /bin/true
   post:
     - |
-      if [ "$CIRCLE_BRANCH" == "master" ]; then
+      if [ "$CIRCLE_BRANCH" == "trunk" ]; then
         echo "Trying to publish package, if it fails then this verison has already been published."
         npm publish .
       else
-        echo "Packages are only published to npm on branch 'master'."
+        echo "Packages are only published to npm on branch 'trunk'."
       fi
       exit 0

@@ -142,5 +142,5 @@ assets.copy();
 
 ## Publishing
 We've configured CircleCI to automatically publish any changes to our npm registry. Whenever a new
-version hits `master`, it should be auto-published by our [ci
+version hits `trunk`, it should be auto-published by our [ci
 robot](https://www.npmjs.com/~density-ci). If npm is out of date, [let us know](/issues/new)

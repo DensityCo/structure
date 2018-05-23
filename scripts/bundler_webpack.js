@@ -16,13 +16,13 @@ function bundler(inFile, outFile, options) {
       filename: path.basename(_outFile),
       path: path.resolve(path.dirname(_outFile))
     },
-    plugins: _options.production ? [
+    plugins: [
+      _options.production ?
       new webpack.DefinePlugin({
         'process.env': {
           'NODE_ENV': '"production"'
         }
-      })
-    ] : [
+      }) :
       new webpack.DefinePlugin({
         'process.env': {
           'NODE_ENV': '"development"'
@@ -47,7 +47,7 @@ function bundler(inFile, outFile, options) {
         } else {
           return Promise.resolve();
         }
-      }).then(() => { // Bundle with Browserify
+      }).then(() => { // Bundle with Webpack
         return new Promise((resolve, reject) => {
           _compiler.run((err, stats) => {
             if (err) {
@@ -57,7 +57,7 @@ function bundler(inFile, outFile, options) {
             }
           });
         });
-      }).then(stats => { // Bundle with Webpack
+      }).then(stats => { // Add source maps
         if (!_options.production && _options.sourceMap) { 
           return fs.readFile(`${outFile}.map`).then(mapContent => {
             return fs.writeFile(`${_outFile}.map.orig`, mapContent);
@@ -85,7 +85,7 @@ function bundler(inFile, outFile, options) {
               // Good to go!
               return url;
             });
-          }); 
+          });
         } else {
           return Promise.resolve();
         }

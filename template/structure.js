@@ -9,7 +9,7 @@ const structure = require('@density/structure');
 const task = process.argv.length > 2 ? process.argv[2] : 'start';
 
 // Set up assets copyier thingamajig
-const assets = structure.assets('./src/**/*', './build');
+const assets = structure.assets('./src', './build');
 
 // Set up styles
 const styles = structure.sass(
@@ -53,14 +53,6 @@ const bundler = structure.webpack(
     production: task === 'build'
   }
 );
-
-// Task options object
-const options = {
-  assets: assets,
-  styles: styles,
-  transpiler: transpiler,
-  bundler: bundler
-};
 
 // Run the correct task!
 if (task === 'build') {

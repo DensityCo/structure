@@ -32,33 +32,20 @@ For new React applications, structure can be configured as the `react-scripts` p
 ### NPM
 
 1. Install structure (`npm i -S @density/structure`)
-2. Create a build script. Here's an example (more details found in [contributing](CONTRIBUTING.md)):
+2. Create a `structure.js` script. Here's an example (more details found in [contributing](CONTRIBUTING.md)):
 
 ```javascript
 // structure.js
-
 const structure = require('@density/structure');
 
-// Copy assets
-const assets = structure.assets('./src', './build');
-
-// Compile sass to css
-const styles = structure.sass('./src/index.css', './src/**/*.css', './build/app.css');
-
-// Transpile all typescript files to their javascript equivalents.
-const transpiler = structure.typescript('./src/**/*.js', './tmp');
-
-// Bundle all transpiled files with webpack
-const bundler = structure.webpack('./tmp/index.js', './build/app.js');
-
-// Start the dev server
+// Start live server
 structure.start({
 
-  // Pass in the modules we set up above
-  assets: assets,
-  styles: styles,
-  transpiler: transpiler,
-  bundler: bundler,
+  // Configure modules for assets, styles, transpiler, and bundler
+  assets: structure.assets('./src', './build'),
+  styles: structure.sass('./src/index.css', './src/**/*.css', './build/app.css'),
+  transpiler: structure.typescript('./src/**/*.js', './tmp', { jsx: 2 }),
+  bundler: structure.webpack('./tmp/index.js', './build/app.js'),
 
   // These are defaults but any live-server options can go here
   serverOptions: {

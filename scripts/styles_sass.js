@@ -37,7 +37,7 @@ function styles(inFile, inGlob, outFile, options) {
           }
         });
       }).then(compiled => {
-        return postcss([ autoprefixer ]).process(compiled.css);
+        return postcss([ autoprefixer ]).process(compiled.css, { from: undefined });
       }).then(prefixed => {
         prefixed.warnings().forEach(warn => {
           console.log(chalk.red(warn.toString()));

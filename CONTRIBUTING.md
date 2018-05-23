@@ -26,25 +26,25 @@ They each return a collection of utilities:
 #### Example Usage
 ```javascript
 // Babel
-// Transpile from src/*.js => transpiled/*.js
-const babel = structure.babel('src/*.js', 'transpiled/', {
+// Transpile from src/*.js => tmp/*.js
+const babel = structure.babel('**/*.js', 'tmp/', {
   presets: ['es2015'],
 });
 
 // Usage:
-babel.transpile('src/foo.js')
+babel.transpile('index.js')
 babel.transpileAll()
 
 
 
 // Typescript
-// Transpile from src/*.js => transpiled/*.js
-const typescript = structure.typescript('src/*.ts', 'transpiled/', {
+// Transpile from src/*.js => tmp/*.js
+const typescript = structure.typescript('**/*.js', 'tmp/', {
   sourceMap: true,
 });
 
 // Usage:
-typescript.transpile('src/foo.ts')
+typescript.transpile('index.ts')
 typescript.transpileAll()
 ```
 
@@ -70,19 +70,14 @@ They each return a single utility:
 #### Example Usage
 ```javascript
 // Bundle *.js => bundle.js with webpack
-const webpack = structure.webpack('*.js', 'bundle.js', {
-  sourceMap: true,
-});
+const webpack = structure.webpack('*.js', 'app.js', { sourceMap: true });
 
 // Usage:
 webpack.bundle()
 
 
-
-// Bundle *.js => bundle.js with browserify
-const browserify = structure.browserify('*.js', 'bundle.js', {
-  sourceMap: true,
-});
+// Or bundle *.js => app.js with browserify
+const browserify = structure.browserify('*.js', 'app.js', { sourceMap: true });
 
 // Usage:
 browserify.bundle()
@@ -95,9 +90,7 @@ three options:
 - A path to the entry point of a stylesheet tree
 - A stylesheet output path
 - A collection of options:
-	- `paths`: a list of paths to include when resolving styles. If using a tool like
-  [nicss](https://github.com/densityco/nicss), add `./styles` to automatically resolve stylesheets
-  from packages.
+	- `paths`: a list of paths to include when resolving styles.
 
 They each return a single utility:
 
@@ -105,10 +98,8 @@ They each return a single utility:
 
 #### Example Usage
 ```javascript
-// Bundle *.scss => main.css with sass
-const sass = structure.sass('*.scss', 'main.css', {
-  paths: ['./styles'], // Use nicss! https://github.com/densityco/nicss
-});
+// Bundle *.css => index.css with sass
+const sass = structure.sass('*.css', 'index.css', { paths: ['.'] });
 
 // Usage:
 sass.compile()
@@ -130,13 +121,10 @@ Assets transforms take a few options:
 
 #### Example Usage
 ```javascript
-const assets = structure.assets(
-  './src/index.html',
-  './dist/index.html',
-  './src/assets',
-  './dist/assets'
-);
+// Copy assets
+const assets = structure.assets('./src/**/!(*.js|*.css)', './build/**/*');
 
+// Usage:
 assets.copy();
 ```
 

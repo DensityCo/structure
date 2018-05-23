@@ -55,7 +55,7 @@ function bundler(inFile, outFile, options) {
             // Attempt to flatten the source map with sourcery.
             return utilities.flattenSourceMap(_outFile, url => {
               if (url.indexOf('app.js') === -1 && url.indexOf('node_modules') === -1) {
-                return url.replace('dist/', '');
+                return url.replace('build/', '');
               }
             });
           });

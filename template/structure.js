@@ -9,18 +9,13 @@ const structure = require('@density/structure');
 const task = process.argv.length > 2 ? process.argv[2] : 'start';
 
 // Set up assets copyier thingamajig
-const assets = structure.assets(
-  './src/index.html',
-  './dist/index.html',
-  './src/assets',
-  './dist/assets'
-);
+const assets = structure.assets('./src/**/*', './build');
 
 // Set up styles
 const styles = structure.sass(
-  './src/styles/main.scss',
-  './src/styles/**/*.scss',
-  './dist/app.css',
+  './src/index.css',
+  './src/**/*.css',
+  './build/app.css',
   {
     paths: [
       // TODO: remove these density-ui specific paths
@@ -36,7 +31,7 @@ const styles = structure.sass(
 
 // Set up transpiler
 const transpiler = structure.typescript(
-  './src/scripts/**/*.ts*',
+  './src/**/*.js',
   './tmp',
   {
     allowSyntheticDefaultImports: true,
@@ -51,8 +46,8 @@ const transpiler = structure.typescript(
 
 // Set up bundler
 const bundler = structure.webpack(
-  './tmp/main.js',
-  './dist/app.js',
+  './tmp/index.js',
+  './build/app.js',
   {
     sourceMap: task === 'start',
     production: task === 'build'
@@ -82,7 +77,7 @@ if (task === 'build') {
     transpiler: transpiler,
     bundler: bundler,
     serverOptions: {
-      root: './dist',
+      root: './build',
       file: 'index.html',
       mount: [
         ['/node_modules', './node_modules'],

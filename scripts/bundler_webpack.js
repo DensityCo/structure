@@ -76,10 +76,10 @@ function bundler(inFile, outFile, options) {
               url = url.replace('/@blueprintjs/datetime/dist/src/', '/@blueprintjs/datetime/src/');
               url = url.replace('/airbnb-prop-types/index.js', null);
 
-              // All source files are mapped from outside the /dist directory
-              if (url.indexOf('dist/app.js') === -1) {
+              // All source files are mapped from outside the /build directory
+              if (url.indexOf('build/app.js') === -1) {
                 const currentPath = path.resolve('.');
-                url = url.replace(`${currentPath}/dist`, currentPath);
+                url = url.replace(`${currentPath}/build`, currentPath);
               }
 
               // Good to go!

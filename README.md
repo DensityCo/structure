@@ -40,21 +40,16 @@ For new React applications, structure can be configured as the `react-scripts` p
 const structure = require('@density/structure');
 
 // Copy assets
-const assets = structure.assets(
-  './src/index.html',
-  './dist/index.html',
-  './src/assets',
-  './dist/assets'
-);
+const assets = structure.assets('./src/**/!(*.js|*.css)', './build');
 
 // Compile sass to css
-const styles = structure.sass('./src/main.scss', './dist/app.css');
+const styles = structure.sass('./src/index.css', './build/app.css');
 
 // Transpile all typescript files to their javascript equivalents.
-const transpiler = structure.typescript('./src/**/*.ts', './tmp');
+const transpiler = structure.typescript('./src/**/*.js', './tmp');
 
 // Bundle all transpiled files with webpack
-const bundler = structure.webpack('./tmp/main.js', './dist/app.js');
+const bundler = structure.webpack('./tmp/index.js', './build/app.js');
 
 // Start the dev server
 structure.start({
@@ -67,7 +62,7 @@ structure.start({
 
   // These are defaults but any live-server options can go here
   serverOptions: {
-    root: './dist',
+    root: './build',
     file: 'index.html'
   }
 });
@@ -82,9 +77,8 @@ An end to end example:
 ```sh
 $ # Set up a tiny project
 $ mkdir src/
-$ mkdir src/assets/
-$ echo "console.log('Hello');" > src/main.ts
-$ echo "body { color: red; }" > src/main.scss
+$ echo "console.log('Hello');" > src/main.js
+$ echo "body { color: red; }" > src/main.css
 $ cat <<EOF > src/index.html
 <html>
  <head>
@@ -102,7 +96,7 @@ $ node structure.js
 * Styles ready!
 * Full transpile done!
 * Bundle ready!
-* Serving "./dist" at http://127.0.0.1:8080
+* Serving "./build" at http://127.0.0.1:8080
 ```
 
 ## Transpiler/bundler Build System
@@ -136,6 +130,14 @@ The logic on every TS change is this:
 
 The result is we get full typechecking on every change, and fast reload for all valid changes (a *very* fast reload if sourcemaps are disabled).
 
+# Babel & Browserify
+Babel and Browserify are not usable out of the box. To enable, add the necessary `dependencies` to package.json:
+```json
+  "babel-core": "^6.26.3",
+  "babel-preset-es2015": "^6.24.1",
+  "babel-preset-react": "^6.24.1",
+  "browserify": "^16.2.2",
+```
 
 # Internals & Contributing
 There's much more detail in [CONTRIBUTING.md](CONTRIBUTING.md).

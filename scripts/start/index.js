@@ -60,7 +60,7 @@ function start(options) {
 
         // Update live server last
         pending.then(() => {
-          liveServer.change(bundler.outFile || assets.indexOutFile);
+          liveServer.change(bundler.outFile);
           scriptsPending--;
           resolve();
         });
@@ -86,7 +86,7 @@ function start(options) {
       const params = Object.assign({
         port: 8080,
         host: "0.0.0.0",
-        root: "./dist",
+        root: "./build",
         file: "index.html",
         open: true,
         wait: 50,

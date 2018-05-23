@@ -1,27 +1,23 @@
 const chalk = require('chalk');
 const fs = require('fs-extra');
+const glob = require('glob');
 const path = require('path');
 const utilities = require('./utilities');
 
-function assets(indexInFile, indexOutFile, assetsInPath, assetsOutPath) {
-  const _indexInFile = indexInFile;
-  const _indexOutFile = indexOutFile;
-  const _assetsInPath = assetsInPath;
-  const _assetsOutPath = assetsOutPath;
+function assets(inGlob, outPath) {
+  const _inGlob = inGlob;
+  const _outPath = outPath;
 
   return {
     name: 'Assets Copier',
-    indexInFile: _indexInFile,
-    indexOutFile: _indexOutFile,
-    assetsInPath: _assetsInPath,
-    assetsOutPath: _assetsOutPath,
+    inGlob: _inGlob,
+    outPath: _outPath,
 
     copy: function () {
-      return fs.copy(_assetsInPath, _assetsOutPath).then(() => {
-        return fs.readFile(_indexInFile);
-      }).then(contents => {
-        return fs.outputFile(_indexOutFile, contents.toString());
-      }).then(() => {
+      return Promise.all(glob.sync(_inGlob).map(function (name) {
+        const dest = _outPath + path.basename(name);
+        return fs.copy(name, dest);
+      })).then(() => {
         console.log(chalk.gray('Assets ready!'));
       });
     }

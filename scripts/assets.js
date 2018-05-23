@@ -12,6 +12,7 @@ function assets(inPath, outPath, filter) {
 
     copy: function () {
       return copy(_inPath, _outPath, {
+        overwrite: true,
         filter: filter || function (name) {
           return !name.endsWith('.css') && !name.endsWith('.js');
         }

@@ -40,10 +40,10 @@ For new React applications, structure can be configured as the `react-scripts` p
 const structure = require('@density/structure');
 
 // Copy assets
-const assets = structure.assets('./src/**/!(*.js|*.css)', './build');
+const assets = structure.assets('./src', './build');
 
 // Compile sass to css
-const styles = structure.sass('./src/index.css', './build/app.css');
+const styles = structure.sass('./src/index.css', './src/**/*.css', './build/app.css');
 
 // Transpile all typescript files to their javascript equivalents.
 const transpiler = structure.typescript('./src/**/*.js', './tmp');
@@ -77,8 +77,8 @@ An end to end example:
 ```sh
 $ # Set up a tiny project
 $ mkdir src/
-$ echo "console.log('Hello');" > src/main.js
-$ echo "body { color: red; }" > src/main.css
+$ echo "console.log('Hello');" > src/index.js
+$ echo "body { color: red; }" > src/index.css
 $ cat <<EOF > src/index.html
 <html>
  <head>

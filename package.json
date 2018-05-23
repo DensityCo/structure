@@ -37,6 +37,7 @@
     "live-server": "^1.2.0",
     "node-sass": "^4.9.0",
     "postcss": "^6.0.22",
+    "recursive-copy": "^2.0.9",
     "sorcery": "ssh://git@github.com/DensityCo/sorcery.git#5d7183eed6049035e223e5aa7c950fb71ccc85ba",
     "typescript": "^2.8.3",
     "uglify-js": "^3.3.27",

@@ -11,8 +11,9 @@ function transpiler(inGlob, outPath, options) {
   const _options = options || {};
   const _metadata = {};
 
-  // Set outDir on TypeScript options if not set
+  // Override some default options
   _options.outDir = _options.outDir || _outPath;
+  _options.allowJs = _options.allowJs || true;
 
   // Create the language service host to allow the LS to communicate with the host
   const _host = {

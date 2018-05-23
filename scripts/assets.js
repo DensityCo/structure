@@ -1,23 +1,19 @@
 const chalk = require('chalk');
-const fs = require('fs-extra');
-const glob = require('glob');
-const path = require('path');
-const utilities = require('./utilities');
+const copy = require('recursive-copy');
 
-function assets(inGlob, outPath) {
-  const _inGlob = inGlob;
+function assets(inPath, outPath, filter) {
+  const _inPath = inPath;
   const _outPath = outPath;
 
   return {
     name: 'Assets Copier',
-    inGlob: _inGlob,
+    inPath: _inPath,
     outPath: _outPath,
 
     copy: function () {
-      return Promise.all(glob.sync(_inGlob).map(function (name) {
-        const dest = _outPath + path.basename(name);
-        return fs.copy(name, dest);
-      })).then(() => {
+      return copy(_inPath, _outPath, {
+        filter: filter || '!(*.js|*.css)'
+      }).then(() => {
         console.log(chalk.gray('Assets ready!'));
       });
     }
